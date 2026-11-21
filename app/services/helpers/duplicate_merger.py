@@ -8,9 +8,9 @@ Authoritative Source: ORIGINAL_REQUEST.md §4, R4.
 
 from __future__ import annotations
 
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Set, Tuple
 
-from app.services.parser import parse_wikitext_references, ParsedDocument
+from app.services.parser import parse_wikitext_references, ParsedDocument, ParsedReference
 
 
 def find_duplicate_references(
@@ -27,53 +27,97 @@ def find_duplicate_references(
     if parsed_doc is None:
         parsed_doc = parse_wikitext_references(wikitext)
 
-    # Track seen bodies and their designated reference names
-    seen_content: Dict[str, str] = {}
-    merges: List[Dict[str, Any]] = []
+    # 1. Collect all pre-existing reference names to prevent collisions
+    used_names: Set[str] = {
+        ref.name.strip('"\'')
+        for ref in parsed_doc.references
+        if ref.name and ref.name.strip()
+    }
+
     slug_counter = 1
 
-    # Also map any pre-existing ref names
+    def generate_unique_slug() -> str:
+        nonlocal slug_counter
+        while f"ref_{slug_counter}" in used_names:
+            slug_counter += 1
+        slug = f"ref_{slug_counter}"
+        used_names.add(slug)
+        slug_counter += 1
+        return slug
+
+    # 2. Group non-empty reference bodies by (body, group)
+    groups: Dict[Tuple[str, Optional[str]], List[ParsedReference]] = {}
     for ref in parsed_doc.references:
         body = ref.inner_content.strip()
         if not body:
             continue
-        if ref.name and ref.name.strip():
-            # Use existing named reference as target name if available
-            clean_name = ref.name.strip('"\'')
-            if body not in seen_content:
-                seen_content[body] = clean_name
+        clean_group = ref.group.strip('"\'') if ref.group and ref.group.strip() else None
+        groups.setdefault((body, clean_group), []).append(ref)
 
-    for ref in parsed_doc.references:
-        body = ref.inner_content.strip()
-        if not body:
+    merges: List[Dict[str, Any]] = []
+
+    for (body, group), ref_list in groups.items():
+        if len(ref_list) < 2:
             continue
 
-        raw = ref.raw_tag
-        if body in seen_content:
-            existing_name = seen_content[body]
-            # If this is already a self-closing reference with the same name, skip
-            if ref.self_closing and (ref.name and ref.name.strip('"\'') == existing_name):
-                continue
-            # If this is the definition itself, do not propose merging onto itself
-            if not ref.self_closing and ref.name and ref.name.strip('"\'') == existing_name:
-                # First instance with the name, keep as definition
+        group_attr = f' group="{group}"' if group else ""
+
+        # Determine target name: prefer first pre-existing name, else generate a safe slug
+        target_name: Optional[str] = None
+        for r in ref_list:
+            if r.name and r.name.strip():
+                target_name = r.name.strip('"\'')
+                break
+
+        if not target_name:
+            target_name = generate_unique_slug()
+
+        # First instance should be the definition
+        first_ref = ref_list[0]
+        first_clean_name = (
+            first_ref.name.strip('"\'')
+            if first_ref.name and first_ref.name.strip()
+            else None
+        )
+
+        if first_clean_name != target_name or first_ref.self_closing:
+            # Must convert first instance into a named full definition
+            merges.append({
+                "original": first_ref.raw_tag,
+                "replacement": f'<ref name="{target_name}"{group_attr}>{body}</ref>',
+                "target_name": target_name,
+                "span_start": first_ref.span_start,
+                "span_end": first_ref.span_end,
+                "content": body,
+                "is_definition": True,
+            })
+
+        # Subsequent instances become self-closing citations
+        for subsequent_ref in ref_list[1:]:
+            sub_clean_name = (
+                subsequent_ref.name.strip('"\'')
+                if subsequent_ref.name and subsequent_ref.name.strip()
+                else None
+            )
+            # If already self-closing with the exact target name, skip
+            if subsequent_ref.self_closing and sub_clean_name == target_name:
                 continue
 
             merges.append({
-                "original": raw,
-                "replacement": f'<ref name="{existing_name}" />',
-                "target_name": existing_name,
-                "span_start": ref.span_start,
-                "span_end": ref.span_end,
+                "original": subsequent_ref.raw_tag,
+                "replacement": f'<ref name="{target_name}"{group_attr} />',
+                "target_name": target_name,
+                "span_start": subsequent_ref.span_start,
+                "span_end": subsequent_ref.span_end,
                 "content": body,
+                "is_definition": False,
             })
-        else:
-            name_slug = f"ref_{slug_counter}"
-            seen_content[body] = name_slug
-            slug_counter += 1
+
+    # Count how many duplicate references were found
+    duplicates_count = sum(len(refs) - 1 for refs in groups.values() if len(refs) >= 2)
 
     return {
-        "duplicates_found": len(merges),
+        "duplicates_found": duplicates_count,
         "proposed_merges": merges,
     }
 
@@ -82,7 +126,6 @@ def apply_duplicate_merges(wikitext: str, proposed_merges: List[Dict[str, Any]])
     """
     Applies proposed duplicate reference merges in descending span order.
     """
-    # Sort merges in descending order of span_start to prevent index drift
     sorted_merges = sorted(
         [m for m in proposed_merges if "span_start" in m and "span_end" in m],
         key=lambda m: m["span_start"],
@@ -92,7 +135,12 @@ def apply_duplicate_merges(wikitext: str, proposed_merges: List[Dict[str, Any]])
     for m in sorted_merges:
         start = m["span_start"]
         end = m["span_end"]
-        # Verify original text matches
         if result[start:end] == m["original"]:
             result = result[:start] + m["replacement"] + result[end:]
     return result
+
+
+__all__ = [
+    "find_duplicate_references",
+    "apply_duplicate_merges",
+]

@@ -4,13 +4,15 @@ Mounted under /api/helpers/*.
 Interception by emergency kill-switch handled via middleware when active.
 """
 
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional
 from fastapi import APIRouter
 from pydantic import BaseModel, Field
 
 from app.services.helpers import (
     find_duplicate_references,
+    apply_duplicate_merges,
     detect_ref_conflicts,
+    apply_conflict_resolution,
     check_dead_links,
     scan_reference_errors,
     calculate_reference_scorecard,
@@ -33,16 +35,44 @@ class PatchPayload(BaseModel):
     filename: Optional[str] = Field(default="article.patch", description="Patch filename")
 
 
+class ApplyMergesPayload(BaseModel):
+    wikitext: str = Field(default="", description="Original wikitext")
+    proposed_merges: List[Dict[str, Any]] = Field(
+        default_factory=list, description="Proposed merges to apply"
+    )
+
+
+class ApplyResolutionsPayload(BaseModel):
+    wikitext: str = Field(default="", description="Original wikitext")
+    resolutions: List[Dict[str, Any]] = Field(
+        default_factory=list, description="Conflict resolutions to apply"
+    )
+
+
 @router.post("/duplicate-merger", summary="Helper 1: Duplicate Ref Merger")
 async def api_duplicate_merger(payload: WikitextPayload) -> Dict[str, Any]:
     """Scans for duplicate reference bodies and proposes consolidation into <ref name="..."/>."""
     return find_duplicate_references(payload.wikitext)
 
 
+@router.post("/apply-duplicate-merges", summary="Helper 1: Apply Duplicate Ref Merges")
+async def api_apply_duplicate_merges(payload: ApplyMergesPayload) -> Dict[str, Any]:
+    """Applies proposed duplicate reference merges to the wikitext."""
+    merged_wikitext = apply_duplicate_merges(payload.wikitext, payload.proposed_merges)
+    return {"wikitext": merged_wikitext}
+
+
 @router.post("/conflict-resolver", summary="Helper 2: Duplicate Name Conflict Resolver")
 async def api_conflict_resolver(payload: WikitextPayload) -> Dict[str, Any]:
     """Identifies conflicting reference bodies assigned to identical ref name attributes."""
     return detect_ref_conflicts(payload.wikitext)
+
+
+@router.post("/apply-conflict-resolution", summary="Helper 2: Apply Conflict Resolution")
+async def api_apply_conflict_resolution(payload: ApplyResolutionsPayload) -> Dict[str, Any]:
+    """Applies conflict resolutions to rename conflicting references in the wikitext."""
+    resolved_wikitext = apply_conflict_resolution(payload.wikitext, payload.resolutions)
+    return {"wikitext": resolved_wikitext}
 
 
 @router.post("/dead-links", summary="Helper 3: Dead Link & Archive Helper")

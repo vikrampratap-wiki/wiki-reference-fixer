@@ -8,7 +8,7 @@ Authoritative Source: ORIGINAL_REQUEST.md §4, R4.
 from __future__ import annotations
 
 import re
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Set
 
 from app.services.parser import parse_wikitext_references, ParsedDocument
 
@@ -39,14 +39,19 @@ def scan_reference_errors(
     """
     errors: List[Dict[str, Any]] = []
 
-    if parsed_doc is None:
-        parsed_doc = parse_wikitext_references(wikitext)
+    # Strip XML comments so commented-out wikitext is ignored
+    clean_wikitext = re.sub(r'<!--.*?-->', '', wikitext, flags=re.DOTALL)
 
-    # 1. Check for empty ref tags
+    if parsed_doc is None:
+        parsed_doc = parse_wikitext_references(clean_wikitext)
+
+    # 1. Check for empty ref tags (in comment-stripped wikitext)
     empty_ref_pattern = re.compile(
-        r'<ref[^>]*>\s*</ref>|<ref\s*/>|<ref\s*>\s*</ref>', re.IGNORECASE
+        r'<ref(?:\s+[^>]*\bgroup=["\'][^"\']*["\'])?\s*>\s*</ref>'
+        r'|<ref(?:\s+[^>]*\bgroup=["\'][^"\']*["\'])?\s*/>',
+        re.IGNORECASE,
     )
-    empty_matches = empty_ref_pattern.findall(wikitext)
+    empty_matches = empty_ref_pattern.findall(clean_wikitext)
     if empty_matches:
         errors.append({
             "type": "empty_ref",
@@ -66,18 +71,36 @@ def scan_reference_errors(
         })
 
     # 3. Check for undefined named references
-    # Self-closing refs: <ref name="xyz" />
-    self_closing_names = re.findall(
-        r'<ref\s+name=["\']([^"\']+)["\']\s*/>', wikitext, re.IGNORECASE
-    )
-    # Defined refs: <ref name="xyz">content</ref>
-    defined_names = set(
-        re.findall(
-            r'<ref\s+name=["\']([^"\']+)["\']\s*>[^<]+</ref>', wikitext, re.IGNORECASE
-        )
-    )
+    defined_names: Set[str] = set()
 
-    for name in set(self_closing_names):
+    # From AST
+    for ref in parsed_doc.references:
+        if ref.name and not ref.self_closing and ref.inner_content.strip():
+            defined_names.add(ref.name.strip('"\''))
+
+    # Also capture via regex allowing arbitrary attribute order and HTML tags inside content
+    def_regex = re.compile(
+        r'<ref\b(?=[^>]*\bname=["\'](?P<name>[^"\']+)["\'])[^>/]*>(?P<content>.*?)</ref>',
+        re.DOTALL | re.IGNORECASE,
+    )
+    for m in def_regex.finditer(clean_wikitext):
+        if m.group("content").strip():
+            defined_names.add(m.group("name").strip())
+
+    # Invocations / self-closing references (arbitrary attribute ordering, e.g. group before name)
+    invoked_names: Set[str] = set()
+    for ref in parsed_doc.references:
+        if ref.name and (ref.self_closing or not ref.inner_content.strip()):
+            invoked_names.add(ref.name.strip('"\''))
+
+    inv_regex = re.compile(
+        r'<ref\b(?=[^>]*\bname=["\'](?P<name>[^"\']+)["\'])[^>]*/>',
+        re.IGNORECASE,
+    )
+    for m in inv_regex.finditer(clean_wikitext):
+        invoked_names.add(m.group("name").strip())
+
+    for name in sorted(list(invoked_names)):
         if name not in defined_names:
             errors.append({
                 "type": "undefined_named_ref",
@@ -89,9 +112,9 @@ def scan_reference_errors(
             })
 
     # 4. Check for unclosed <ref> tags
-    open_count = len(re.findall(r'<ref(?:\s+[^>]*)?>', wikitext, re.IGNORECASE))
-    self_closing_count = len(re.findall(r'<ref(?:\s+[^>]*)?/>', wikitext, re.IGNORECASE))
-    close_count = len(re.findall(r'</ref>', wikitext, re.IGNORECASE))
+    open_count = len(re.findall(r'<ref(?:\s+[^>]*)?>', clean_wikitext, re.IGNORECASE))
+    self_closing_count = len(re.findall(r'<ref(?:\s+[^>]*)?/>', clean_wikitext, re.IGNORECASE))
+    close_count = len(re.findall(r'</ref>', clean_wikitext, re.IGNORECASE))
     if (open_count - self_closing_count) > close_count:
         errors.append({
             "type": "unclosed_ref",
@@ -103,3 +126,9 @@ def scan_reference_errors(
         "error_count": len(errors),
         "errors": errors,
     }
+
+
+__all__ = [
+    "REFLIST_ALIASES",
+    "scan_reference_errors",
+]

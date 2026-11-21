@@ -17,26 +17,31 @@ def generate_wikitext_diff_patch(
     filename: str = "article.patch"
 ) -> Dict[str, Any]:
     """
-    Generates a unified diff patch between original and modified wikitext.
+    Generates a unified diff patch between original and modified wikitext
+    with properly line-terminated headers and hunks.
     """
-    original_lines = original_wikitext.splitlines(keepends=True)
-    modified_lines = modified_wikitext.splitlines(keepends=True)
+    original_lines = original_wikitext.splitlines()
+    modified_lines = modified_wikitext.splitlines()
 
     diff = difflib.unified_diff(
         original_lines,
         modified_lines,
         fromfile="a/article.wiki",
         tofile="b/article.wiki",
-        lineterm=""
+        lineterm="",
     )
-    patch_text = "".join(diff)
+    diff_lines = list(diff)
+    if diff_lines:
+        patch_text = "\n".join(diff_lines) + "\n"
+    else:
+        patch_text = ""
 
     lines_added = sum(
-        1 for line in patch_text.splitlines()
+        1 for line in diff_lines
         if line.startswith("+") and not line.startswith("+++")
     )
     lines_removed = sum(
-        1 for line in patch_text.splitlines()
+        1 for line in diff_lines
         if line.startswith("-") and not line.startswith("---")
     )
 
@@ -47,3 +52,8 @@ def generate_wikitext_diff_patch(
         "lines_added": lines_added,
         "lines_removed": lines_removed,
     }
+
+
+__all__ = [
+    "generate_wikitext_diff_patch",
+]

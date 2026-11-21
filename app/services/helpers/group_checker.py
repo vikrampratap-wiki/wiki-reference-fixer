@@ -14,6 +14,7 @@ from typing import Any, Dict, Set
 def check_ref_groups(wikitext: str) -> Dict[str, Any]:
     """
     Checks reference groups against reflist container groups.
+    Handles optional whitespace around '=', '|', and unquoted attribute values.
     Returns:
         {
             "ref_groups_found": List[str],
@@ -23,25 +24,36 @@ def check_ref_groups(wikitext: str) -> Dict[str, Any]:
         }
     """
     # Find all group attributes in <ref> tags
-    ref_group_pattern = re.compile(r'<ref\s+[^>]*group=["\']([^"\']+)["\']', re.IGNORECASE)
-    group_refs: Set[str] = set(ref_group_pattern.findall(wikitext))
+    ref_group_pattern = re.compile(
+        r'<ref\s+[^>]*\bgroup\s*=\s*["\']?([^"\'\s>]+)["\']?',
+        re.IGNORECASE,
+    )
+    group_refs: Set[str] = {
+        g.strip().strip('"\'')
+        for g in ref_group_pattern.findall(wikitext)
+        if g.strip()
+    }
 
     # Find all group parameters in reflist templates or <references> tags
-    # e.g., {{Reflist|group=foo}}, {{सन्दर्भ सूची|group=foo}}, <references group="foo" />
     container_template_pattern = re.compile(
-        r'\{\{(?:reflist|संदर्भसूची|सन्दर्भ सूची|टिप्पणी सूची|रेफ़्लिस्ट)[^}]*\|group=([^}|]+)',
-        re.IGNORECASE
+        r'\{\{(?:reflist|संदर्भसूची|सन्दर्भ सूची|टिप्पणी सूची|रेफ़्लिस्ट|'
+        r'संदर्भ\s*सूची|सन्दर्भ\s*सूची)[^}]*\|\s*group\s*=\s*["\']?([^"\'\|\}]+)["\']?',
+        re.IGNORECASE,
     )
     container_tag_pattern = re.compile(
-        r'<references\s+[^>]*group=["\']([^"\']+)["\']',
-        re.IGNORECASE
+        r'<references\s+[^>]*\bgroup\s*=\s*["\']?([^"\'\s>]+)["\']?',
+        re.IGNORECASE,
     )
 
     container_groups: Set[str] = set()
     for g in container_template_pattern.findall(wikitext):
-        container_groups.add(g.strip())
+        cleaned = g.strip().strip('"\'')
+        if cleaned:
+            container_groups.add(cleaned)
     for g in container_tag_pattern.findall(wikitext):
-        container_groups.add(g.strip())
+        cleaned = g.strip().strip('"\'')
+        if cleaned:
+            container_groups.add(cleaned)
 
     orphaned = list(group_refs - container_groups)
 
@@ -51,3 +63,8 @@ def check_ref_groups(wikitext: str) -> Dict[str, Any]:
         "orphaned_groups": sorted(orphaned),
         "is_consistent": len(orphaned) == 0,
     }
+
+
+__all__ = [
+    "check_ref_groups",
+]

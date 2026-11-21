@@ -23,7 +23,7 @@ def calculate_reference_scorecard(
             "total_refs": int,
             "bare_urls": int,
             "formatted_citations": int,
-            "status": "उत्कृष्ट" | "मध्यम" | "खराब",
+            "status": "उत्कृष्ट" | "मध्यम" | "खराब" | "अति खराब",
             "grade": "A" | "B" | "C" | "D",
         }
     """
@@ -33,7 +33,7 @@ def calculate_reference_scorecard(
     total_refs = parsed_doc.total_refs
     bare_count = len(parsed_doc.bare_url_refs)
 
-    # If no references exist at all
+    # If no references exist at all, return baseline 100 Grade A
     if total_refs == 0:
         return {
             "health_score": 100,
@@ -44,10 +44,11 @@ def calculate_reference_scorecard(
             "grade": "A",
         }
 
-    # Deduct points for bare URLs
+    # Deduct points for bare URLs proportionally to reference density
     score = 100
-    if total_refs > 0:
-        score -= min(bare_count * 20, 70)
+    bare_ratio = bare_count / total_refs
+    bare_deduction = int(bare_ratio * 60) + min(bare_count * 5, 10)
+    score -= min(bare_deduction, 70)
 
     # Deduct for missing reflist container
     if not parsed_doc.has_reflist:
@@ -62,12 +63,15 @@ def calculate_reference_scorecard(
     if score >= 80:
         status = "उत्कृष्ट"
         grade = "A"
-    elif score >= 50:
+    elif score >= 60:
         status = "मध्यम"
         grade = "B"
-    else:
+    elif score >= 40:
         status = "खराब"
         grade = "C"
+    else:
+        status = "अति खराब"
+        grade = "D"
 
     formatted_count = total_refs - bare_count
 
@@ -79,3 +83,8 @@ def calculate_reference_scorecard(
         "status": status,
         "grade": grade,
     }
+
+
+__all__ = [
+    "calculate_reference_scorecard",
+]

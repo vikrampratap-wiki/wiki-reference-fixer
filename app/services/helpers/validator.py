@@ -17,9 +17,18 @@ DEVANAGARI_DIGITS = {
 }
 
 
+def normalize_devanagari_numerals(text: str) -> str:
+    """Normalizes Devanagari numerals to ASCII Arabic digits."""
+    normalized = text
+    for dev, latin in DEVANAGARI_DIGITS.items():
+        normalized = normalized.replace(dev, latin)
+    return normalized
+
+
 def validate_isbn_10(isbn: str) -> bool:
     """Validates an ISBN-10 checksum."""
-    clean = isbn.replace("-", "").replace(" ", "").strip()
+    normalized = normalize_devanagari_numerals(isbn)
+    clean = normalized.replace("-", "").replace(" ", "").strip()
     if len(clean) != 10:
         return False
     try:
@@ -35,7 +44,8 @@ def validate_isbn_10(isbn: str) -> bool:
 
 def validate_isbn_13(isbn: str) -> bool:
     """Validates an ISBN-13 checksum."""
-    clean = isbn.replace("-", "").replace(" ", "").strip()
+    normalized = normalize_devanagari_numerals(isbn)
+    clean = normalized.replace("-", "").replace(" ", "").strip()
     if len(clean) != 13 or not clean.isdigit():
         return False
     total = sum(int(c) * (1 if i % 2 == 0 else 3) for i, c in enumerate(clean[:12]))
@@ -45,7 +55,8 @@ def validate_isbn_13(isbn: str) -> bool:
 
 def validate_issn(issn: str) -> bool:
     """Validates an 8-digit ISSN."""
-    clean = issn.replace("-", "").replace(" ", "").strip()
+    normalized = normalize_devanagari_numerals(issn)
+    clean = normalized.replace("-", "").replace(" ", "").strip()
     if len(clean) != 8:
         return False
     try:
@@ -58,17 +69,24 @@ def validate_issn(issn: str) -> bool:
 
 
 def validate_doi(doi: str) -> bool:
-    """Validates standard DOI format (10.xxxx/yyyy)."""
-    doi_pattern = re.compile(r'^10\.\d{4,9}/[-._;()/:A-Za-z0-9]+$')
-    return bool(doi_pattern.match(doi.strip()))
-
-
-def normalize_devanagari_numerals(text: str) -> str:
-    """Normalizes Devanagari numerals to ASCII Arabic digits."""
-    normalized = text
-    for dev, latin in DEVANAGARI_DIGITS.items():
-        normalized = normalized.replace(dev, latin)
-    return normalized
+    """
+    Validates standard DOI format (10.xxxx/yyyy), supporting
+    https://doi.org/ prefix and valid DOI characters (+, -, ., _, etc.).
+    """
+    clean = doi.strip()
+    prefixes = (
+        "https://doi.org/",
+        "http://doi.org/",
+        "https://dx.doi.org/",
+        "http://dx.doi.org/",
+        "doi:",
+    )
+    for prefix in prefixes:
+        if clean.lower().startswith(prefix):
+            clean = clean[len(prefix):].strip()
+            break
+    doi_pattern = re.compile(r'^10\.\d{4,9}/[-._;()/:+A-Za-z0-9]+$')
+    return bool(doi_pattern.match(clean))
 
 
 def validate_bibliographic_identifiers(wikitext: str) -> Dict[str, Any]:
@@ -82,19 +100,25 @@ def validate_bibliographic_identifiers(wikitext: str) -> Dict[str, Any]:
     """
     results: Dict[str, Any] = {}
 
-    # 1. ISBN check
-    isbn_match = re.search(r'isbn\s*=\s*([0-9\-xX]+)', wikitext, re.IGNORECASE)
+    # 1. ISBN check (supports ASCII and Devanagari numerals)
+    isbn_match = re.search(r'isbn\s*=\s*([0-9०-९\-xX\s]+)', wikitext, re.IGNORECASE)
     if isbn_match:
-        raw_isbn = isbn_match.group(1).replace("-", "").strip()
-        if len(raw_isbn) == 13:
-            valid = validate_isbn_13(raw_isbn)
+        raw_isbn = isbn_match.group(1).strip()
+        normalized_isbn = (
+            normalize_devanagari_numerals(raw_isbn)
+            .replace("-", "")
+            .replace(" ", "")
+            .strip()
+        )
+        if len(normalized_isbn) == 13:
+            valid = validate_isbn_13(normalized_isbn)
             results["isbn"] = {
                 "raw": raw_isbn,
                 "valid": valid,
                 "type": "ISBN-13",
             }
-        elif len(raw_isbn) == 10:
-            valid = validate_isbn_10(raw_isbn)
+        elif len(normalized_isbn) == 10:
+            valid = validate_isbn_10(normalized_isbn)
             results["isbn"] = {
                 "raw": raw_isbn,
                 "valid": valid,
@@ -112,19 +136,39 @@ def validate_bibliographic_identifiers(wikitext: str) -> Dict[str, Any]:
             "valid": validate_doi(raw_doi),
         }
 
-    # 3. ISSN check
-    issn_match = re.search(r'issn\s*=\s*([0-9\-xX]+)', wikitext, re.IGNORECASE)
+    # 3. ISSN check (supports ASCII and Devanagari numerals)
+    issn_match = re.search(r'issn\s*=\s*([0-9०-९\-xX\s]+)', wikitext, re.IGNORECASE)
     if issn_match:
-        raw_issn = issn_match.group(1).replace("-", "").strip()
+        raw_issn = issn_match.group(1).strip()
+        normalized_issn = (
+            normalize_devanagari_numerals(raw_issn)
+            .replace("-", "")
+            .replace(" ", "")
+            .strip()
+        )
         results["issn"] = {
             "raw": raw_issn,
-            "valid": validate_issn(raw_issn),
+            "valid": validate_issn(normalized_issn),
         }
 
     # 4. Devanagari Date Normalization
     has_dev_digits = any(d in wikitext for d in DEVANAGARI_DIGITS)
     if has_dev_digits:
-        normalized_sample = normalize_devanagari_numerals(wikitext[:100])
+        # Search for explicit date parameter first across the whole document
+        date_pattern = (
+            r'(?:date|access-date|archive-date|year|दिनांक|तिथि|वर्ष)'
+            r'\s*=\s*([^\s\|\}]+[०-९][^\s\|\}]*)'
+        )
+        date_match = re.search(date_pattern, wikitext, re.IGNORECASE)
+        if date_match:
+            sample = date_match.group(0)
+        else:
+            first_idx = min(wikitext.index(d) for d in DEVANAGARI_DIGITS if d in wikitext)
+            start = max(0, first_idx - 20)
+            end = min(len(wikitext), first_idx + 80)
+            sample = wikitext[start:end]
+
+        normalized_sample = normalize_devanagari_numerals(sample)
         results["date_normalization"] = {
             "detected": True,
             "normalized_sample": normalized_sample,
@@ -134,3 +178,14 @@ def validate_bibliographic_identifiers(wikitext: str) -> Dict[str, Any]:
         "identifiers_scanned": len(results),
         "results": results,
     }
+
+
+__all__ = [
+    "DEVANAGARI_DIGITS",
+    "normalize_devanagari_numerals",
+    "validate_isbn_10",
+    "validate_isbn_13",
+    "validate_issn",
+    "validate_doi",
+    "validate_bibliographic_identifiers",
+]
