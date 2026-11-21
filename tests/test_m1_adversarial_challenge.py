@@ -50,9 +50,9 @@ def test_session_token_tampering_signature():
     token = create_session_token({"username": "विक्रम प्रताप", "is_admin": True})
     parts = token.split(".")
 
-    # 1. Flip last character
-    flipped_char = "A" if parts[-1][-1] != "A" else "B"
-    bad_sig_token = token[:-1] + flipped_char
+    # 1. Flip signature character (flip first char of signature to avoid base64 padding collision)
+    flipped_char = "X" if parts[-1][0] != "X" else "Y"
+    bad_sig_token = f"{parts[0]}.{parts[1]}.{flipped_char}{parts[-1][1:]}"
     assert decode_session_token(bad_sig_token) is None
 
     # 2. Empty signature

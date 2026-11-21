@@ -174,6 +174,8 @@ def _format_bare_url_replacement(
     parsed_domain = ""
     try:
         parsed_domain = urllib.parse.urlparse(url).hostname or ""
+        if parsed_domain.startswith("www."):
+            parsed_domain = parsed_domain[4:]
     except Exception:
         pass
 

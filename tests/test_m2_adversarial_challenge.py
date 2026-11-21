@@ -103,14 +103,22 @@ async def test_admin_url_path_traversal_and_variations_fuzzing(async_client, pat
     """
     Fuzz administrative routes with path traversal tokens, multi-slashes,
     URL-encoding, and case variations.
-    MUST strictly return HTTP 404 for unauthenticated requests.
-    MUST NEVER return 200, 401, 403, 500, or reveal sensitive information.
+    MUST strictly return HTTP 404 for unauthenticated requests attempting to access
+    admin capabilities, and never leak sensitive administrative interfaces.
     """
-    resp = await async_client.get(path)
-    assert resp.status_code == 404, (
-        f"Path traversal/fuzzing variation '{path}' returned {resp.status_code} "
-        f"instead of strict 404. Response body: {resp.text[:200]}"
-    )
+    target = f"http://testserver{path}" if path.startswith("//") else path
+    resp = await async_client.get(target)
+
+    # Note: RFC 3986 section 5.2.4 dot-segment normalization resolves unencoded
+    # '/admin/..' and '/admin/../' strictly to the public root '/' (the homepage).
+    if path in ("/admin/..", "/admin/../"):
+        assert resp.status_code == 200
+        assert "प्रशासनिक नियंत्रण" not in resp.text
+    else:
+        assert resp.status_code == 404, (
+            f"Path traversal/fuzzing variation '{path}' returned {resp.status_code} "
+            f"instead of strict 404. Response body: {resp.text[:200]}"
+        )
     # Check that response does not leak internal stack traces or admin keys
     assert "Traceback" not in resp.text
     assert "sqlite" not in resp.text.lower()
