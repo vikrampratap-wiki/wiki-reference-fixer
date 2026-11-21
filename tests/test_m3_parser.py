@@ -11,6 +11,7 @@ Authoritative Source: ORIGINAL_REQUEST.md (§3, R1, R2, R5), PROJECT.md (§M3).
 
 from __future__ import annotations
 
+import datetime
 import httpx
 import pytest
 import respx
@@ -128,6 +129,39 @@ class TestBareUrlDetection:
         text3 = "लेख। == संदर्भ ==\n<references />"
         doc3 = parse_wikitext_references(text3)
         assert doc3.has_reflist is True
+
+    def test_bare_url_generic_fallback_formatting_and_zero_hardcoding(self) -> None:
+        """
+        Confirms bare URLs use genuine dynamic domain extraction and today's date,
+        with zero domain-specific hardcoded branches or canned titles.
+        """
+        today = datetime.date.today().isoformat()
+        sample_urls = [
+            ("https://www.jagran.com/sports/cricket-today.html", "jagran.com"),
+            (
+                "https://timesofindia.indiatimes.com/tech/ai-advances.html",
+                "timesofindia.indiatimes.com",
+            ),
+            ("https://bbc.com/hindi/india", "bbc.com"),
+            ("https://example.org/research/doc.pdf", "example.org"),
+        ]
+        for url, expected_domain in sample_urls:
+            doc = parse_wikitext_references(f"विवरण।<ref>{url}</ref>")
+            assert len(doc.modifications) == 1
+            mod = doc.modifications[0]
+            assert mod.type == "bare_url"
+            snippet = mod.proposed_snippet
+            # Must be Cite web
+            assert "{{Cite web" in snippet
+            # Must have clean domain title and website
+            assert f"title={expected_domain} वेब सन्दर्भ" in snippet
+            assert f"website={expected_domain}" in snippet
+            assert f"access-date={today}" in snippet
+            # Must NOT contain historical hardcoded strings
+            assert "2026-11-19" not in snippet
+            assert "2026-11-20" not in snippet
+            assert "दैनिक जागरण: राष्ट्रीय समाचार" not in snippet
+            assert "टाइम्स ऑफ इंडिया: ताज़ा ख़बरें" not in snippet
 
 
 # ==============================================================================
@@ -669,3 +703,45 @@ class TestDescendingSpanReconstruction:
         )
         with pytest.raises(ValueError, match="Integrity check failed"):
             apply_granular_modifications(wikitext, [mod])
+
+    def test_descending_span_disjoint_guarantee_with_cross_engine_mods(self) -> None:
+        """
+        Regression test: Verify that when combining bare URL modifications and syntax
+        repairs where overlapping spans have been filtered, apply_granular_modifications
+        guarantees byte-for-byte exactness and raises zero overlap errors.
+        """
+        wikitext = "प्रारंभ <ref name=unquoted>https://example.com</ref> मध्य {{cite ||}} अंत"
+        snippet1 = "<ref name=unquoted>https://example.com</ref>"
+        s1 = wikitext.find(snippet1)
+        e1 = s1 + len(snippet1)
+        snippet2 = "{{cite ||}}"
+        s2 = wikitext.find(snippet2)
+        e2 = s2 + len(snippet2)
+        bare_mod = Modification(
+            id="mod-bare-1",
+            type="bare_url",
+            span_start=s1,
+            span_end=e1,
+            original_snippet=snippet1,
+            proposed_snippet='<ref name="unquoted">{{Cite web |url=https://example.com}}</ref>',
+        )
+        syntax_mod_stray = Modification(
+            id="mod-syn-1",
+            type="syntax_repair",
+            span_start=s2,
+            span_end=e2,
+            original_snippet=snippet2,
+            proposed_snippet="{{cite |}}",
+        )
+
+        # Both modifications are strictly disjoint
+        assert bare_mod.span_end <= syntax_mod_stray.span_start
+
+        # Reconstruct
+        res = apply_granular_modifications(wikitext, [bare_mod, syntax_mod_stray])
+        assert 'name="unquoted"' in res
+        assert "{{Cite web" in res
+        assert "{{cite |}}" in res
+        assert "प्रारंभ " in res
+        assert " मध्य " in res
+        assert " अंत" in res

@@ -36,6 +36,7 @@ def get_engine() -> AsyncEngine:
         engine_kwargs: dict[str, Any] = {
             "echo": settings.DEBUG and settings.ENVIRONMENT == "development",
             "future": True,
+            "connect_args": {"timeout": 30.0},
         }
         if ":memory:" not in settings.database_url:
             engine_kwargs.update(
@@ -57,7 +58,7 @@ def get_engine() -> AsyncEngine:
             cursor = dbapi_connection.cursor()
             cursor.execute("PRAGMA journal_mode=WAL;")
             cursor.execute("PRAGMA synchronous=NORMAL;")
-            cursor.execute("PRAGMA busy_timeout=5000;")
+            cursor.execute("PRAGMA busy_timeout=30000;")
             cursor.execute("PRAGMA foreign_keys=ON;")
             cursor.close()
 

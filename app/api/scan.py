@@ -118,7 +118,22 @@ async def scan_wikitext(payload: ScanPayload) -> Dict[str, Any]:
     all_mods.extend(bare_mods)
 
     # 2. Syntax repair modifications
+    # Deduplicate against bare_mods: when a bare URL has malformed tag attributes
+    # (e.g. <ref name=foo>), bare_mods replaces the entire tag and normalizes attributes.
+    # Any overlapping syntax repair is redundant and would cause span collision in
+    # apply_granular_modifications.
     for sm in syntax_mods:
+        overlaps_bare = any(
+            not (sm.span_end <= bm["span_start"] or sm.span_start >= bm["span_end"])
+            for bm in bare_mods
+        )
+        if overlaps_bare:
+            logger.info(
+                "Skipping syntax repair '%s' [%d:%d] as it is subsumed by bare URL modification",
+                sm.id, sm.span_start, sm.span_end,
+            )
+            continue
+
         mod_id = f"mod-syn-{len(all_mods) + 1}"
         all_mods.append({
             "id": mod_id,

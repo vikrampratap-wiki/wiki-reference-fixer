@@ -53,18 +53,32 @@ class CitoidRateLimiter:
     """
     Asynchronous rate limiter enforcing request spacing.
     Strictly complies with Wikimedia Citoid 1 rps policy.
+    Loop-aware to support multiple event loops without cross-loop lock binding.
     """
 
     def __init__(self, rps: float = 1.0) -> None:
         self.interval: float = 1.0 / rps if rps > 0 else 0.0
         self._last_call: float = 0.0
-        self._lock: asyncio.Lock = asyncio.Lock()
+        self._lock: Optional[asyncio.Lock] = None
+
+    @property
+    def lock(self) -> asyncio.Lock:
+        """Return an asyncio.Lock bound to the current running event loop."""
+        try:
+            loop = asyncio.get_running_loop()
+        except RuntimeError:
+            loop = None
+        if self._lock is None or (
+            loop is not None and getattr(self._lock, "_loop", None) not in (None, loop)
+        ):
+            self._lock = asyncio.Lock()
+        return self._lock
 
     async def wait(self) -> None:
         """Wait until sufficient interval has elapsed since the last request."""
         if self.interval <= 0:
             return
-        async with self._lock:
+        async with self.lock:
             now = time.monotonic()
             elapsed = now - self._last_call
             if elapsed < self.interval:

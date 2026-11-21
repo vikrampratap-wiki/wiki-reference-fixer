@@ -20,6 +20,7 @@ from app.api.admin import admin_page_router, router as admin_router
 from app.api.auth import router as auth_router
 from app.api.diff import router as diff_router
 from app.api.helpers import router as helpers_router
+from app.api.requests import router as requests_router
 from app.api.scan import router as scan_router
 from app.core.config import get_settings
 from app.db.database import close_db, get_session_maker, init_db
@@ -204,6 +205,7 @@ def create_app() -> FastAPI:
     app.include_router(auth_router)
     app.include_router(admin_router)
     app.include_router(admin_page_router)
+    app.include_router(requests_router)
     app.include_router(scan_router)
     app.include_router(helpers_router)
     app.include_router(diff_router)

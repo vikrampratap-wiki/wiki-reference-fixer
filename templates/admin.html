@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="hi" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>गोपनीय एडमिन पैनल • विकिपीडिया सन्दर्भ सुधार उपकरण</title>
+    <style>
+        :root {
+            --primary: #0645ad;
+            --primary-hover: #0b0080;
+            --success: #2e7d32;
+            --success-bg: #e8f5e9;
+            --danger: #c62828;
+            --danger-bg: #ffebee;
+            --warning: #f57f17;
+            --warning-bg: #fffde7;
+            --bg: #f8f9fa;
+            --card: #ffffff;
+            --text: #202122;
+            --text-muted: #54595d;
+            --border: #a2a9b1;
+            --border-light: #eaecf0;
+            --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans Devanagari", sans-serif;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: var(--font-family); background-color: var(--bg); color: var(--text); line-height: 1.6; }
+        header { background-color: var(--card); border-bottom: 2px solid var(--border-light); padding: 1rem 1.5rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; }
+        .brand { display: flex; align-items: center; gap: 0.75rem; }
+        .brand h1 { font-size: 1.25rem; font-weight: 700; color: #1a1a1a; }
+        .container { max-width: 1200px; margin: 1.5rem auto; padding: 0 1rem; }
+        .card { background: var(--card); border: 1px solid var(--border-light); border-radius: 8px; padding: 1.25rem; margin-bottom: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+        .card-title { font-size: 1.15rem; font-weight: 600; margin-bottom: 1rem; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border-light); padding-bottom: 0.5rem; }
+        .badge { display: inline-block; padding: 0.25rem 0.6rem; font-size: 0.8rem; font-weight: 600; border-radius: 4px; }
+        .badge-success { background: var(--success-bg); color: var(--success); }
+        .badge-warning { background: var(--warning-bg); color: var(--warning); }
+        .badge-danger { background: var(--danger-bg); color: var(--danger); }
+        .badge-info { background: #e3f2fd; color: #1565c0; }
+        .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; }
+        .stat-box { background: var(--bg); border: 1px solid var(--border-light); border-radius: 6px; padding: 1rem; text-align: center; }
+        .stat-number { font-size: 1.75rem; font-weight: 700; color: var(--primary); }
+        .stat-label { font-size: 0.85rem; color: var(--text-muted); margin-top: 0.25rem; }
+        .btn { display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; padding: 0.5rem 1rem; font-size: 0.9rem; font-weight: 600; border-radius: 4px; cursor: pointer; border: 1px solid transparent; transition: all 0.2s; }
+        .btn-primary { background-color: var(--primary); color: #fff; }
+        .btn-success { background-color: var(--success); color: #fff; }
+        .btn-danger { background-color: var(--danger); color: #fff; }
+        .btn-outline { background-color: transparent; border-color: var(--border); color: var(--text); }
+        .btn-sm { padding: 0.25rem 0.5rem; font-size: 0.8rem; }
+        table { width: 100%; border-collapse: collapse; margin-top: 0.75rem; font-size: 0.9rem; }
+        th, td { padding: 0.65rem; border: 1px solid var(--border-light); text-align: left; }
+        th { background: #f1f3f5; font-weight: 600; }
+        input, select, textarea { padding: 0.5rem 0.75rem; border: 1px solid var(--border); border-radius: 4px; font-family: inherit; font-size: 0.9rem; }
+        .form-row { display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: center; margin-bottom: 0.75rem; }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="brand">
+            <span style="font-size: 1.75rem;">🛡️</span>
+            <div>
+                <h1>विकिपीडिया सन्दर्भ सुधार — गोपनीय एडमिन पैनल</h1>
+                <p style="font-size:0.85rem; color:var(--text-muted);">केवल सत्यापित वेबसाइट व्यवस्थापक हेतु (Strict 404 Cloaked)</p>
+            </div>
+        </div>
+        <div>
+            <span class="badge badge-success">सत्यापित एडमिन: <strong>{{ username }}</strong></span>
+            <a href="/" class="btn btn-outline btn-sm" style="margin-left: 0.5rem;">मुख्य पृष्ठ</a>
+        </div>
+    </header>
+
+    <div class="container">
+        <!-- Overview Stats -->
+        <div class="stat-grid" id="statsGrid">
+            <div class="stat-box">
+                <div class="stat-number" id="killSwitchDisplay">चालू (Live)</div>
+                <div class="stat-label">सिस्टम स्थिति (Kill-Switch)</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-number" id="rateLimitDisplay">--</div>
+                <div class="stat-label">दर-सीमा (Req / Minute)</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-number" id="queueCountDisplay">0</div>
+                <div class="stat-label">अनुरोध कतार (Requests)</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-number" id="auditCountDisplay">0</div>
+                <div class="stat-label">ऑडिट लॉग प्रविष्टियाँ</div>
+            </div>
+        </div>
+
+        <!-- Emergency Kill-Switch & Rate Limit -->
+        <div class="card">
+            <h2 class="card-title">
+                <span>आपातकालीन किल-स्विच एवं दर-सीमा नियंत्रण</span>
+                <span class="badge badge-danger">उच्च-प्राथमिकता</span>
+            </h2>
+            <div class="form-row">
+                <button id="killSwitchBtn" class="btn btn-danger" onclick="toggleKillSwitch()">
+                    🛑 किल-स्विच चालू/बंद करें
+                </button>
+                <span id="killSwitchStatusText" style="font-size:0.9rem; color:var(--text-muted);">
+                    (वर्तमान में सामान्य संचालन सक्रिय है)
+                </span>
+            </div>
+            <hr style="margin: 1rem 0; border: none; border-top: 1px solid var(--border-light);" />
+            <div class="form-row">
+                <label for="rateLimitInput"><strong>सिस्टम दर-सीमा (Requests/min):</strong></label>
+                <input type="number" id="rateLimitInput" min="1" max="1000" style="width: 120px;" />
+                <button class="btn btn-primary btn-sm" onclick="saveRateLimit()">सहेजें</button>
+                <span id="rateLimitMsg" style="font-size:0.85rem; color:var(--success);"></span>
+            </div>
+        </div>
+
+        <!-- User Requests Queue Management -->
+        <div class="card">
+            <h2 class="card-title">
+                <span>उपयोगकर्ता अनुरोध कतार (User Requests Queue)</span>
+                <div>
+                    <button class="btn btn-outline btn-sm" onclick="loadQueue()">🔄 रीफ़्रेश</button>
+                </div>
+            </h2>
+            <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom: 0.75rem;">
+                सामान्य उपयोगकर्ताओं द्वारा भेजे गए श्रेणी बैच-सुधार, साँचा नियम, या लेख सुधार अनुरोध:
+            </p>
+            <div style="overflow-x:auto;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>शीर्षक / पृष्ठ</th>
+                            <th>अनुरोध का प्रकार</th>
+                            <th>विवरण</th>
+                            <th>अनुरोधकर्ता</th>
+                            <th>स्थिति</th>
+                            <th>क्रियाएँ (Actions)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="queueTableBody">
+                        <tr><td colspan="6" style="text-align:center;">डेटा लोड हो रहा है...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Bulk Category Runner -->
+        <div class="card">
+            <h2 class="card-title">
+                <span>गोपनीय बैच / श्रेणी प्रोसेसर (Bulk Category Runner)</span>
+                <span class="badge badge-info">ऑन-विकी MediaWiki API</span>
+            </h2>
+            <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom: 0.75rem;">
+                किसी पूरी विकिपीडिया श्रेणी के लेखों को स्वतः फेच करके समीक्षा-कतार में जोड़ें (ज़ीरो ऑटो-सेव फिर भी सक्रिय रहेगा):
+            </p>
+            <div class="form-row">
+                <input type="text" id="categoryInput" placeholder="उदा. श्रेणी:जीवनी या Category:History" style="flex:1; min-width:250px;" />
+                <input type="number" id="categoryLimit" value="15" min="1" max="50" style="width:80px;" title="अधिकतम लेख" />
+                <button class="btn btn-primary" onclick="runBulkCategory()">🚀 श्रेणी फेच व कतारबद्ध करें</button>
+            </div>
+            <div id="categoryResult" style="margin-top:0.75rem;"></div>
+        </div>
+
+        <!-- Whitelist & Blacklist Manager -->
+        <div class="card">
+            <h2 class="card-title">
+                <span>डू-नॉट-टच व्हाइटलिस्ट एवं ब्लैकलिस्ट नियम</span>
+                <span class="badge badge-warning">ग्लोबल नियम</span>
+            </h2>
+            <div class="form-row">
+                <select id="ruleType">
+                    <option value="whitelist">व्हाइटलिस्ट (सुरक्षित)</option>
+                    <option value="blacklist">ब्लैकलिस्ट (वर्जित)</option>
+                </select>
+                <select id="ruleScope">
+                    <option value="domain">डोमेन (Domain)</option>
+                    <option value="page">पृष्ठ (Page)</option>
+                    <option value="user">सदस्य (User)</option>
+                </select>
+                <input type="text" id="rulePattern" placeholder="पैटर्न (उदा. *.gov.in या विकिपीडिया:प्रबंधक)" style="flex:1;" />
+                <input type="text" id="ruleReason" placeholder="कारण" style="flex:1;" />
+                <button class="btn btn-success btn-sm" onclick="addRule()">+ नियम जोड़ें</button>
+            </div>
+            <div style="overflow-x:auto;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>प्रकार</th>
+                            <th>दायरा (Scope)</th>
+                            <th>पैटर्न</th>
+                            <th>कारण</th>
+                            <th>जोड़ने वाला</th>
+                            <th>क्रिया</th>
+                        </tr>
+                    </thead>
+                    <tbody id="rulesTableBody">
+                        <tr><td colspan="6" style="text-align:center;">लोड हो रहा है...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Audit Logs Viewer -->
+        <div class="card">
+            <h2 class="card-title">
+                <span>सिस्टम ऑडिट लॉग (System Audit Logs)</span>
+                <div>
+                    <button class="btn btn-outline btn-sm" onclick="loadAuditLogs()">🔄 रीफ़्रेश लॉग्स</button>
+                </div>
+            </h2>
+            <div style="overflow-x:auto; max-height: 400px;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>समय</th>
+                            <th>क्रिया (Action)</th>
+                            <th>सदस्य</th>
+                            <th>पृष्ठ</th>
+                            <th>विवरण</th>
+                        </tr>
+                    </thead>
+                    <tbody id="auditTableBody">
+                        <tr><td colspan="5" style="text-align:center;">लोड हो रहा है...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        async function loadAdminStatus() {
+            try {
+                const resp = await fetch('/api/admin/status');
+                const data = await resp.json();
+                document.getElementById('killSwitchDisplay').innerText = data.kill_switch ? "अवरुद्ध (Stopped)" : "सक्रिय (Live)";
+                document.getElementById('killSwitchDisplay').style.color = data.kill_switch ? "var(--danger)" : "var(--success)";
+                document.getElementById('rateLimitDisplay').innerText = data.rate_limit_per_minute;
+                document.getElementById('rateLimitInput').value = data.rate_limit_per_minute;
+                document.getElementById('queueCountDisplay').innerText = data.db_stats.requests_count;
+                document.getElementById('auditCountDisplay').innerText = data.db_stats.audit_logs_count;
+                document.getElementById('killSwitchStatusText').innerText = data.kill_switch 
+                    ? "(सिस्टम किल-स्विच सक्रिय है — सभी बाहरी API अनुरोध रुके हुए हैं)"
+                    : "(वर्तमान में सामान्य संचालन सक्रिय है)";
+            } catch (err) {
+                console.error("Status load failed", err);
+            }
+        }
+
+        async function toggleKillSwitch() {
+            try {
+                const resp = await fetch('/api/admin/kill-switch', {method: 'POST'});
+                const data = await resp.json();
+                alert(data.message);
+                loadAdminStatus();
+            } catch (err) {
+                alert("त्रुटि: " + err.message);
+            }
+        }
+
+        async function saveRateLimit() {
+            const val = parseInt(document.getElementById('rateLimitInput').value, 10);
+            if (!val || val < 1) return;
+            try {
+                const resp = await fetch('/api/admin/rate-limit', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({rate_limit_per_minute: val})
+                });
+                const data = await resp.json();
+                document.getElementById('rateLimitMsg').innerText = "सहेजा गया (" + data.rate_limit_per_minute + "/min)";
+                setTimeout(() => document.getElementById('rateLimitMsg').innerText = "", 3000);
+                loadAdminStatus();
+            } catch (err) {
+                alert("त्रुटि: " + err.message);
+            }
+        }
+
+        async function loadQueue() {
+            try {
+                const resp = await fetch('/api/admin/queue');
+                const data = await resp.json();
+                const tbody = document.getElementById('queueTableBody');
+                tbody.innerHTML = '';
+                if (!data.requests || data.requests.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">कोई अनुरोध उपलब्ध नहीं है।</td></tr>';
+                    return;
+                }
+                data.requests.forEach(req => {
+                    const tr = document.createElement('tr');
+                    const statusBadge = req.status === 'pending' ? 'badge-warning' : (req.status === 'approved' ? 'badge-info' : (req.status === 'completed' ? 'badge-success' : 'badge-danger'));
+                    tr.innerHTML = `
+                        <td><strong>${escapeHtml(req.page_title)}</strong></td>
+                        <td>${escapeHtml(req.request_type || 'लेख सुधार')}</td>
+                        <td style="max-width:250px; font-size:0.85rem;">${escapeHtml(req.description || '-')}</td>
+                        <td>${escapeHtml(req.requester_name || 'अनाम')}</td>
+                        <td><span class="badge ${statusBadge}">${req.status}</span></td>
+                        <td>
+                            ${req.status === 'pending' ? `
+                                <button class="btn btn-outline btn-sm" onclick="approveQueueItem('${req.id}')">स्वीकृत</button>
+                                <button class="btn btn-danger btn-sm" onclick="rejectQueueItem('${req.id}')">अस्वीकृत</button>
+                            ` : ''}
+                            ${req.status === 'approved' ? `
+                                <button class="btn btn-success btn-sm" onclick="executeQueueItem('${req.id}')">पूर्ण करें</button>
+                            ` : ''}
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            } catch (err) {
+                console.error("Queue load failed", err);
+            }
+        }
+
+        async function approveQueueItem(id) {
+            await fetch(`/api/admin/queue/${id}/approve`, {method: 'POST'});
+            loadQueue();
+        }
+
+        async function rejectQueueItem(id) {
+            const reason = prompt("अस्वीकृति का कारण दर्ज करें:");
+            if (!reason) return;
+            await fetch(`/api/admin/queue/${id}/reject`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({reason})
+            });
+            loadQueue();
+        }
+
+        async function executeQueueItem(id) {
+            await fetch(`/api/admin/queue/${id}/execute`, {method: 'POST'});
+            loadQueue();
+        }
+
+        async function runBulkCategory() {
+            const cat = document.getElementById('categoryInput').value.trim();
+            const limit = parseInt(document.getElementById('categoryLimit').value, 10) || 15;
+            if (!cat) { alert("कृपया श्रेणी का नाम दर्ज करें!"); return; }
+
+            const resDiv = document.getElementById('categoryResult');
+            resDiv.innerHTML = '<span class="badge badge-warning">श्रेणी से लेख खोजे जा रहे हैं...</span>';
+
+            try {
+                const resp = await fetch('/api/admin/bulk-category', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({category_name: cat, limit})
+                });
+                const data = await resp.json();
+                resDiv.innerHTML = `
+                    <div class="badge badge-success" style="padding:0.5rem; width:100%; text-align:left;">
+                        ${data.message}<br/>
+                        <strong>लेख:</strong> ${data.articles.join(', ') || 'कोई नहीं'}
+                    </div>
+                `;
+                loadQueue();
+                loadAdminStatus();
+            } catch (err) {
+                resDiv.innerHTML = `<span class="badge badge-danger">त्रुटि: ${err.message}</span>`;
+            }
+        }
+
+        async function loadRules() {
+            try {
+                const resp = await fetch('/api/admin/rules');
+                const data = await resp.json();
+                const tbody = document.getElementById('rulesTableBody');
+                tbody.innerHTML = '';
+                if (!data.rules || data.rules.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">कोई नियम नहीं है।</td></tr>';
+                    return;
+                }
+                data.rules.forEach(r => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td><span class="badge ${r.rule_type === 'whitelist' ? 'badge-success' : 'badge-danger'}">${r.rule_type}</span></td>
+                        <td>${r.scope}</td>
+                        <td><code>${escapeHtml(r.pattern)}</code></td>
+                        <td>${escapeHtml(r.reason)}</td>
+                        <td>${escapeHtml(r.added_by)}</td>
+                        <td><button class="btn btn-danger btn-sm" onclick="deleteRule(${r.id})">हटाएँ</button></td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            } catch (err) {
+                console.error("Rules load failed", err);
+            }
+        }
+
+        async function addRule() {
+            const rule_type = document.getElementById('ruleType').value;
+            const scope = document.getElementById('ruleScope').value;
+            const pattern = document.getElementById('rulePattern').value.trim();
+            const reason = document.getElementById('ruleReason').value.trim();
+            if (!pattern || !reason) { alert("पैटर्न और कारण दोनों अनिवार्य हैं!"); return; }
+
+            await fetch('/api/admin/rules', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({rule_type, scope, pattern, reason})
+            });
+            document.getElementById('rulePattern').value = '';
+            document.getElementById('ruleReason').value = '';
+            loadRules();
+        }
+
+        async function deleteRule(id) {
+            if (!confirm("क्या आप निश्चित रूप से यह नियम हटाना चाहते हैं?")) return;
+            await fetch(`/api/admin/rules/${id}`, {method: 'DELETE'});
+            loadRules();
+        }
+
+        async function loadAuditLogs() {
+            try {
+                const resp = await fetch('/api/admin/audit?limit=25');
+                const data = await resp.json();
+                const tbody = document.getElementById('auditTableBody');
+                tbody.innerHTML = '';
+                if (!data.audit_logs || data.audit_logs.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">कोई ऑडिट लॉग नहीं है।</td></tr>';
+                    return;
+                }
+                data.audit_logs.forEach(log => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td style="font-size:0.8rem; white-space:nowrap;">${log.timestamp.slice(0, 19).replace('T', ' ')}</td>
+                        <td><span class="badge badge-info">${escapeHtml(log.action)}</span></td>
+                        <td>${escapeHtml(log.username)}</td>
+                        <td>${escapeHtml(log.page_title || '-')}</td>
+                        <td style="font-size:0.8rem;"><pre>${escapeHtml(JSON.stringify(log.details || {}))}</pre></td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            } catch (err) {
+                console.error("Audit load failed", err);
+            }
+        }
+
+        function escapeHtml(text) {
+            if (!text) return "";
+            return String(text)
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+
+        // Initialize admin dashboard
+        loadAdminStatus();
+        loadQueue();
+        loadRules();
+        loadAuditLogs();
+    </script>
+</body>
+</html>
