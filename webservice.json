@@ -1,0 +1,7 @@
+{
+  "type": "python3.11",
+  "backend": "kubernetes",
+  "version": 1,
+  "cpu": "1",
+  "mem": "1Gi"
+}

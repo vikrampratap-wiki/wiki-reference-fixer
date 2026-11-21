@@ -1,0 +1,883 @@
+<!DOCTYPE html>
+<html lang="hi" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>विकिपीडिया सन्दर्भ सुधार उपकरण (Hindi Wikipedia Reference Fixer)</title>
+    <style>
+        :root {
+            --primary: #0645ad;
+            --primary-hover: #0b0080;
+            --success: #2e7d32;
+            --success-bg: #e8f5e9;
+            --danger: #c62828;
+            --danger-bg: #ffebee;
+            --warning: #f57f17;
+            --warning-bg: #fffde7;
+            --bg: #f8f9fa;
+            --card: #ffffff;
+            --text: #202122;
+            --text-muted: #54595d;
+            --border: #a2a9b1;
+            --border-light: #eaecf0;
+            --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans Devanagari", "Lohit Devanagari", sans-serif;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: var(--font-family);
+            background-color: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            padding: 0;
+        }
+
+        header {
+            background-color: var(--card);
+            border-bottom: 2px solid var(--border-light);
+            padding: 1rem 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .brand-logo {
+            font-size: 2rem;
+            color: var(--primary);
+        }
+
+        .brand h1 {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .brand p {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        .nav-actions {
+            display: flex;
+            gap: 0.75rem;
+            align-items: center;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 1.5rem auto;
+            padding: 0 1rem;
+        }
+
+        .card {
+            background: var(--card);
+            border: 1px solid var(--border-light);
+            border-radius: 8px;
+            padding: 1.25rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+
+        .card-title {
+            font-size: 1.15rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid var(--border-light);
+            padding-bottom: 0.5rem;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 0.4rem;
+            font-size: 0.95rem;
+        }
+
+        input[type="text"], textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            font-family: inherit;
+            font-size: 0.95rem;
+            transition: border-color 0.2s;
+        }
+
+        input[type="text"]:focus, textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px rgba(6, 69, 173, 0.15);
+        }
+
+        textarea {
+            min-height: 140px;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+            font-size: 0.9rem;
+        }
+
+        .btn-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+            margin-top: 0.5rem;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            padding: 0.65rem 1.25rem;
+            font-size: 0.95rem;
+            font-weight: 600;
+            border-radius: 4px;
+            cursor: pointer;
+            border: 1px solid transparent;
+            transition: all 0.2s;
+            text-decoration: none;
+        }
+
+        .btn-primary {
+            background-color: var(--primary);
+            color: #ffffff;
+        }
+        .btn-primary:hover {
+            background-color: var(--primary-hover);
+        }
+
+        .btn-success {
+            background-color: var(--success);
+            color: #ffffff;
+        }
+        .btn-success:hover {
+            background-color: #1b5e20;
+        }
+
+        .btn-outline {
+            background-color: transparent;
+            border-color: var(--border);
+            color: var(--text);
+        }
+        .btn-outline:hover {
+            background-color: var(--bg);
+        }
+
+        /* Scorecard Grid */
+        .scorecard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .stat-box {
+            background: var(--bg);
+            border: 1px solid var(--border-light);
+            border-radius: 6px;
+            padding: 1rem;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .stat-label {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-top: 0.25rem;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.6rem;
+            font-size: 0.8rem;
+            font-weight: 600;
+            border-radius: 4px;
+        }
+        .badge-success { background: var(--success-bg); color: var(--success); }
+        .badge-warning { background: var(--warning-bg); color: var(--warning); }
+        .badge-danger { background: var(--danger-bg); color: var(--danger); }
+
+        /* Diff Section */
+        .diff-item {
+            border: 1px solid var(--border-light);
+            border-radius: 6px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            background: #ffffff;
+            transition: border-color 0.2s;
+        }
+        .diff-item:hover {
+            border-color: var(--primary);
+        }
+
+        .diff-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 0.75rem;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .diff-checkbox-label {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .diff-columns {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        @media (max-width: 768px) {
+            .diff-columns {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .diff-box {
+            padding: 0.75rem;
+            border-radius: 4px;
+            font-family: ui-monospace, SFMono-Regular, monospace;
+            font-size: 0.85rem;
+            word-break: break-all;
+            white-space: pre-wrap;
+        }
+
+        .diff-orig {
+            background-color: var(--danger-bg);
+            border-left: 4px solid var(--danger);
+            color: #9a0007;
+            text-decoration: line-through;
+        }
+
+        .diff-prop {
+            background-color: var(--success-bg);
+            border-left: 4px solid var(--success);
+            color: #1b5e20;
+        }
+
+        /* Zero Auto-Save Warning Banner */
+        .zero-autosave-banner {
+            background-color: var(--warning-bg);
+            border: 1px solid #ffe082;
+            border-radius: 6px;
+            padding: 1.25rem;
+            margin: 1.5rem 0;
+            display: flex;
+            align-items: flex-start;
+            gap: 1rem;
+        }
+
+        .zero-autosave-icon {
+            font-size: 1.75rem;
+        }
+
+        /* Companion Helpers Tabs */
+        .tabs {
+            display: flex;
+            overflow-x: auto;
+            border-bottom: 1px solid var(--border-light);
+            margin-bottom: 1rem;
+        }
+
+        .tab-btn {
+            padding: 0.6rem 1rem;
+            background: none;
+            border: none;
+            border-bottom: 2px solid transparent;
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            cursor: pointer;
+            white-space: nowrap;
+        }
+
+        .tab-btn.active {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+        }
+
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+
+        footer {
+            text-align: center;
+            padding: 2rem 1rem;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            border-top: 1px solid var(--border-light);
+            margin-top: 2rem;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="brand">
+            <span class="brand-logo">📚</span>
+            <div>
+                <h1>विकिपीडिया सन्दर्भ सुधार उपकरण</h1>
+                <p>हिन्दी विकिपीडिया (hi.wikipedia.org) के लिए सुरक्षित एवं स्वचालित सन्दर्भ सुधारक</p>
+            </div>
+        </div>
+        <div class="nav-actions">
+            <span id="userStatus" class="badge badge-success">लॉगिन: विकिपीडिया सदस्य</span>
+            <a href="/api/auth/login" class="btn btn-outline" style="font-size:0.85rem; padding:0.4rem 0.8rem;">पुनः लॉगिन</a>
+        </div>
+    </header>
+
+    <div class="container">
+        <!-- Input Section -->
+        <div class="card">
+            <h2 class="card-title">
+                <span>सामग्री इनपुट (Input Wikitext or Article Title)</span>
+                <span class="badge badge-success">AST Parser & Citoid Engine</span>
+            </h2>
+            <div class="form-group">
+                <label for="articleTitle">विकिपीडिया लेख का शीर्षक (वैकल्पिक):</label>
+                <div style="display:flex; gap:0.5rem;">
+                    <input type="text" id="articleTitle" placeholder="उदा. चंद्रयान-3 या महात्मा गांधी" />
+                    <button class="btn btn-outline" onclick="fetchArticle()">फेच करें</button>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="wikitextInput">Wikitext सामग्री:</label>
+                <textarea id="wikitextInput" placeholder="यहाँ विकिटेक्स्ट पेस्ट करें जिसमें नग्न URLs या सुधार योग्य सन्दर्भ हों..."></textarea>
+            </div>
+            <div class="btn-group">
+                <button class="btn btn-primary" onclick="scanWikitext()">
+                    🔍 सन्दर्भ स्कैन करें (Analyze & Propose)
+                </button>
+                <button class="btn btn-outline" onclick="loadSampleText()">
+                    नमूना विकिटेक्स्ट लोड करें
+                </button>
+                <button class="btn btn-outline" onclick="clearAll()">
+                    साफ़ करें
+                </button>
+            </div>
+        </div>
+
+        <!-- Reference Health Scorecard -->
+        <div class="card" id="scorecardCard" style="display: none;">
+            <h2 class="card-title">
+                <span>सन्दर्भ स्वास्थ्य स्कोरकार्ड (Reference Health Scorecard)</span>
+                <span id="healthScoreBadge" class="badge badge-success">उत्कृष्ट</span>
+            </h2>
+            <div class="scorecard-grid">
+                <div class="stat-box">
+                    <div class="stat-number" id="healthScoreNum">100</div>
+                    <div class="stat-label">स्वास्थ्य स्कोर (0-100)</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-number" id="totalRefsNum">0</div>
+                    <div class="stat-label">कुल सन्दर्भ (<ref>)</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-number" id="bareUrlsNum" style="color:var(--danger);">0</div>
+                    <div class="stat-label">नग्न URLs (Bare URLs)</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-number" id="proposedFixesNum" style="color:var(--success);">0</div>
+                    <div class="stat-label">सुधार प्रस्ताव (Modifications)</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Granular Diff Review Section -->
+        <div class="card" id="diffCard" style="display: none;">
+            <h2 class="card-title">
+                <span>साइड-बाय-साइड Granular Diff समीक्षा</span>
+                <div>
+                    <label style="font-size:0.85rem; cursor:pointer;">
+                        <input type="checkbox" id="selectAllCheckbox" onchange="toggleSelectAll(this.checked)" checked />
+                        सभी चुनें / छोड़ें
+                    </label>
+                </div>
+            </h2>
+            <p style="font-size:0.9rem; color:var(--text-muted); margin-bottom:1rem;">
+                प्रत्येक सुधार को अलग-अलग स्वीकार या अस्वीकार करने के लिए चेकबॉक्स का उपयोग करें। केवल चयनित सुधार ही लागू होंगे:
+            </p>
+            <div id="diffItemsList"></div>
+        </div>
+
+        <!-- 8 Companion Helper Modules Section -->
+        <div class="card" id="helpersCard">
+            <h2 class="card-title">
+                <span>8 सहायक मॉड्यूल (Companion Helper Modules)</span>
+                <span class="badge badge-success">सहायक उपकरण</span>
+            </h2>
+            <div class="tabs">
+                <button class="tab-btn active" onclick="openTab('tabDuplicate')">डुप्लिकेट विलय</button>
+                <button class="tab-btn" onclick="openTab('tabConflict')">नाम विरोध निवारक</button>
+                <button class="tab-btn" onclick="openTab('tabDeadLink')">मृत कड़ी / Wayback</button>
+                <button class="tab-btn" onclick="openTab('tabErrors')">त्रुटि स्कैनर</button>
+                <button class="tab-btn" onclick="openTab('tabValidator')">ISBN / DOI सत्यापन</button>
+                <button class="tab-btn" onclick="openTab('tabGroup')">ग्रुप संगति</button>
+                <button class="tab-btn" onclick="openTab('tabAdvisory')">अविश्वसनीय स्रोत</button>
+            </div>
+
+            <!-- Tab 1: Duplicate Merger -->
+            <div id="tabDuplicate" class="tab-content active">
+                <p>समान URL या सामग्री वाले संदर्भों को <code>&lt;ref name="..."&gt;</code> में विलय करने की जाँच करें।</p>
+                <button class="btn btn-outline" style="margin-top:0.75rem;" onclick="runDuplicateMerger()">डुप्लिकेट जाँचें</button>
+                <div id="duplicateMergerResult" style="margin-top:0.75rem;"></div>
+            </div>
+
+            <!-- Tab 2: Conflict Resolver -->
+            <div id="tabConflict" class="tab-content">
+                <p>एक ही सन्दर्भ नाम (name attribute) के तहत भिन्न सामग्रियाँ पहचानें ताकि डेटा ओवरराइट न हो।</p>
+                <button class="btn btn-outline" style="margin-top:0.75rem;" onclick="runConflictResolver()">विरोध जाँचें</button>
+                <div id="conflictResolverResult" style="margin-top:0.75rem;"></div>
+            </div>
+
+            <!-- Tab 3: Dead Links / Wayback -->
+            <div id="tabDeadLink" class="tab-content">
+                <p>404 या मृत कड़ियों की पहचान कर Internet Archive (Wayback Machine) से आर्काइव प्राप्त करें।</p>
+                <button class="btn btn-outline" style="margin-top:0.75rem;" onclick="runDeadLinks()">मृत कड़ियाँ जाँचें</button>
+                <div id="deadLinksResult" style="margin-top:0.75rem;"></div>
+            </div>
+
+            <!-- Tab 4: Error Scanner -->
+            <div id="tabErrors" class="tab-content">
+                <p>रिक्त <code>&lt;ref&gt;</code>, अपरिभाषित नाम, और बिना सन्दर्भ सूची वाले लेखों की पहचान करें।</p>
+                <button class="btn btn-outline" style="margin-top:0.75rem;" onclick="runErrorScanner()">सिंटैक्स त्रुटियाँ जाँचें</button>
+                <div id="errorScannerResult" style="margin-top:0.75rem;"></div>
+            </div>
+
+            <!-- Tab 5: Validator -->
+            <div id="tabValidator" class="tab-content">
+                <p>ISBN, ISSN, DOI का चेकसम सत्यापन और देवनागरी अंकों का मानकीकरण करें।</p>
+                <button class="btn btn-outline" style="margin-top:0.75rem;" onclick="runValidator()">पहचानकर्ता सत्यापित करें</button>
+                <div id="validatorResult" style="margin-top:0.75rem;"></div>
+            </div>
+
+            <!-- Tab 6: Group Checker -->
+            <div id="tabGroup" class="tab-content">
+                <p>जाँचें कि क्या <code>&lt;ref group="..."&gt;</code> के लिए संबंधित <code>{{सन्दर्भ सूची|group=...}}</code> मौजूद है।</p>
+                <button class="btn btn-outline" style="margin-top:0.75rem;" onclick="runGroupChecker()">ग्रुप संगति जाँचें</button>
+                <div id="groupCheckerResult" style="margin-top:0.75rem;"></div>
+            </div>
+
+            <!-- Tab 7: Domain Advisory -->
+            <div id="tabAdvisory" class="tab-content">
+                <p>विकिपीडिया नीति (WP:RSP) के अनुसार सोशल मीडिया व गैर-विश्वसनीय स्रोतों पर सलाहकार चेतावनी बैज।</p>
+                <button class="btn btn-outline" style="margin-top:0.75rem;" onclick="runDomainAdvisory()">डोमेन जाँचें</button>
+                <div id="domainAdvisoryResult" style="margin-top:0.75rem;"></div>
+            </div>
+        </div>
+
+        <!-- Zero Auto-Save Human Verification & Publishing Gateway -->
+        <div class="card" id="publishCard" style="display: none;">
+            <h2 class="card-title">
+                <span>ज़ीरो ऑटो-सेव एवं मानवीय पुष्टि प्रणाली</span>
+                <span class="badge badge-warning">मानवीय समीक्षा अनिवार्य</span>
+            </h2>
+
+            <div class="zero-autosave-banner">
+                <div class="zero-autosave-icon">⚠️</div>
+                <div>
+                    <h3 style="font-size:1.05rem; margin-bottom:0.25rem;">ज़ीरो ऑटो-सेव नीति (Zero Auto-Save Policy)</h3>
+                    <p style="font-size:0.9rem; color:var(--text-muted);">
+                        विकिपीडिया पर कोई भी संपादन स्वतः या बिना आपकी पुष्टि के कभी नहीं भेजा जाएगा।
+                        कृपया प्रस्तावित परिवर्तनों की समीक्षा करें और पुष्टि करें।
+                    </p>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="editSummaryInput">स्वचालित संपादन सारांश (Dynamic Hindi Edit Summary):</label>
+                <input type="text" id="editSummaryInput" value="नग्न URL को मानक साँचों में बदला ([[WP:REF|सन्दर्भ सुधार उपकरण]])" />
+            </div>
+
+            <div class="form-group">
+                <label style="display:flex; align-items:center; gap:0.6rem; cursor:pointer; font-weight:700; color:var(--primary);">
+                    <input type="checkbox" id="humanConfirmCheckbox" onchange="updateConfirmButton()" />
+                    हाँ, मैंने उपरोक्त सभी परिवर्तनों की समीक्षा कर ली है और पुष्टि करता हूँ (I confirm this edit)
+                </label>
+            </div>
+
+            <div class="btn-group">
+                <button class="btn btn-outline" onclick="copyModifiedWikitext()">
+                    📋 Wikitext कॉपी करें
+                </button>
+                <button class="btn btn-outline" onclick="downloadPatch()">
+                    💾 पैच डाउनलोड करें (.patch)
+                </button>
+                <button class="btn btn-outline" onclick="triggerDryRun()">
+                    👁️ पूर्वावलोकन (Dry-Run)
+                </button>
+                <button class="btn btn-success" id="publishBtn" onclick="publishToWikipedia()" disabled>
+                    🚀 विकिपीडिया पर सहेजें (Publish to Wikipedia)
+                </button>
+            </div>
+            <div id="publishStatus" style="margin-top:1rem;"></div>
+        </div>
+    </div>
+
+    <footer>
+        <p>विकिपीडिया सन्दर्भ सुधार उपकरण • निर्मित: विक्रम प्रताप • लाइसेन्स: MIT • Wikimedia Toolforge Ready</p>
+    </footer>
+
+    <script>
+        let currentModifications = [];
+        let originalWikitext = "";
+
+        function openTab(tabId) {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            event.target.classList.add('active');
+            document.getElementById(tabId).classList.add('active');
+        }
+
+        function loadSampleText() {
+            const sample = `== इतिहास ==
+चंद्रयान-3 मिशन सफल रहा था।<ref>https://www.isro.gov.in/chandrayaan3.html</ref>
+यह भारत का तीसरा चंद्र मिशन था।<ref>[https://timesofindia.indiatimes.com/india/chandrayaan-3-landing मिशन विवरण]</ref>
+समान स्रोत दोबारा उद्धृत किया गया।<ref>https://www.isro.gov.in/chandrayaan3.html</ref>
+अविश्वसनीय सोशल मीडिया स्रोत।<ref>https://twitter.com/user/status/123456</ref>
+पुस्तक सन्दर्भ।<ref>{{Cite book |title=अंतरिक्ष विज्ञान |isbn=978-0-306-40615-7 |date=२०२३-०८-२३}}</ref>
+
+== सन्दर्भ ==
+{{सन्दर्भ सूची}}`;
+            document.getElementById('wikitextInput').value = sample;
+            document.getElementById('articleTitle').value = "चंद्रयान-3 नमूना";
+        }
+
+        function clearAll() {
+            document.getElementById('wikitextInput').value = "";
+            document.getElementById('articleTitle').value = "";
+            document.getElementById('scorecardCard').style.display = "none";
+            document.getElementById('diffCard').style.display = "none";
+            document.getElementById('publishCard').style.display = "none";
+            currentModifications = [];
+        }
+
+        async function scanWikitext() {
+            const wikitext = document.getElementById('wikitextInput').value.trim();
+            if (!wikitext) {
+                alert("कृपया पहले Wikitext दर्ज करें!");
+                return;
+            }
+            originalWikitext = wikitext;
+
+            try {
+                const resp = await fetch("/api/scan", {
+                    method: "POST",
+                    headers: {"Content-Type": "application/json"},
+                    body: JSON.stringify({wikitext: wikitext, title: document.getElementById('articleTitle').value})
+                });
+                const data = await resp.json();
+
+                // Render Scorecard
+                document.getElementById('scorecardCard').style.display = "block";
+                document.getElementById('healthScoreNum').innerText = data.health_score || 100;
+                document.getElementById('totalRefsNum').innerText = data.total_refs || 0;
+                document.getElementById('bareUrlsNum').innerText = data.bare_urls || 0;
+                document.getElementById('proposedFixesNum').innerText = data.modifications.length || 0;
+
+                const badge = document.getElementById('healthScoreBadge');
+                if (data.health_score >= 80) {
+                    badge.className = "badge badge-success";
+                    badge.innerText = "उत्कृष्ट (Grade A)";
+                } else if (data.health_score >= 50) {
+                    badge.className = "badge badge-warning";
+                    badge.innerText = "मध्यम (Grade B)";
+                } else {
+                    badge.className = "badge badge-danger";
+                    badge.innerText = "सुधार आवश्यक (Grade C)";
+                }
+
+                // Render Diff List
+                currentModifications = data.modifications || [];
+                renderDiffItems(currentModifications);
+
+                document.getElementById('diffCard').style.display = currentModifications.length > 0 ? "block" : "none";
+                document.getElementById('publishCard').style.display = "block";
+                updateDiffSummary();
+            } catch (err) {
+                alert("स्कैन में त्रुटि: " + err.message);
+            }
+        }
+
+        function renderDiffItems(mods) {
+            const container = document.getElementById('diffItemsList');
+            container.innerHTML = "";
+
+            mods.forEach((mod, idx) => {
+                const item = document.createElement('div');
+                item.className = "diff-item";
+                item.innerHTML = `
+                    <div class="diff-header">
+                        <label class="diff-checkbox-label">
+                            <input type="checkbox" class="mod-checkbox" value="${mod.id}" checked onchange="updateDiffSummary()" />
+                            <span>सुधार #${idx + 1}: ${mod.description || 'सन्दर्भ सुधार'}</span>
+                        </label>
+                        <span class="badge badge-success">${mod.type}</span>
+                    </div>
+                    <div class="diff-columns">
+                        <div>
+                            <div style="font-size:0.8rem; font-weight:600; margin-bottom:0.25rem; color:var(--danger);">मूल पाठ (Original):</div>
+                            <div class="diff-box diff-orig">${escapeHtml(mod.original_snippet)}</div>
+                        </div>
+                        <div>
+                            <div style="font-size:0.8rem; font-weight:600; margin-bottom:0.25rem; color:var(--success);">प्रस्तावित सुधार (Proposed):</div>
+                            <div class="diff-box diff-prop">${escapeHtml(mod.proposed_snippet)}</div>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(item);
+            });
+        }
+
+        async function updateDiffSummary() {
+            const checkedIds = Array.from(document.querySelectorAll('.mod-checkbox:checked')).map(cb => cb.value);
+            if (currentModifications.length === 0) return;
+
+            try {
+                const resp = await fetch("/api/diff", {
+                    method: "POST",
+                    headers: {"Content-Type": "application/json"},
+                    body: JSON.stringify({
+                        original_wikitext: originalWikitext,
+                        selected_ids: checkedIds,
+                        modifications: currentModifications
+                    })
+                });
+                const data = await resp.json();
+                document.getElementById('editSummaryInput').value = data.summary;
+            } catch (err) {
+                console.error("Diff summary error:", err);
+            }
+        }
+
+        function toggleSelectAll(checked) {
+            document.querySelectorAll('.mod-checkbox').forEach(cb => cb.checked = checked);
+            updateDiffSummary();
+        }
+
+        function updateConfirmButton() {
+            const confirmed = document.getElementById('humanConfirmCheckbox').checked;
+            document.getElementById('publishBtn').disabled = !confirmed;
+        }
+
+        async function copyModifiedWikitext() {
+            const checkedIds = Array.from(document.querySelectorAll('.mod-checkbox:checked')).map(cb => cb.value);
+            const resp = await fetch("/api/diff", {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({
+                    original_wikitext: originalWikitext,
+                    selected_ids: checkedIds,
+                    modifications: currentModifications
+                })
+            });
+            const data = await resp.json();
+            navigator.clipboard.writeText(data.reconstructed_wikitext);
+            alert("सुधारा गया Wikitext क्लिपबोर्ड पर कॉपी कर लिया गया!");
+        }
+
+        async function downloadPatch() {
+            const checkedIds = Array.from(document.querySelectorAll('.mod-checkbox:checked')).map(cb => cb.value);
+            const resp = await fetch("/api/diff", {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({
+                    original_wikitext: originalWikitext,
+                    selected_ids: checkedIds,
+                    modifications: currentModifications
+                })
+            });
+            const data = await resp.json();
+            const blob = new Blob([data.diff_patch], {type: "text/plain;charset=utf-8"});
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = "article_references.patch";
+            a.click();
+        }
+
+        async function triggerDryRun() {
+            const title = document.getElementById('articleTitle').value || "परीक्षण लेख";
+            const summary = document.getElementById('editSummaryInput').value;
+            const resp = await fetch("/api/save", {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({
+                    title: title,
+                    wikitext: originalWikitext,
+                    summary: summary,
+                    confirmed: true,
+                    dry_run: true
+                })
+            });
+            const data = await resp.json();
+            document.getElementById('publishStatus').innerHTML = `
+                <div class="badge badge-success" style="padding:0.75rem; width:100%; text-align:left;">
+                    ✓ पूर्वावलोकन सफल! विकिपीडिया पर कोई संशोधन नहीं किया गया (Zero Auto-Save Verified).
+                </div>
+            `;
+        }
+
+        async function publishToWikipedia() {
+            const confirmed = document.getElementById('humanConfirmCheckbox').checked;
+            if (!confirmed) {
+                alert("ज़ीरो ऑटो-सेव: कृपया पहले पुष्टि चेकबॉक्स पर टिक करें!");
+                return;
+            }
+
+            const title = document.getElementById('articleTitle').value || "परीक्षण लेख";
+            const summary = document.getElementById('editSummaryInput').value;
+            const resp = await fetch("/api/save", {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({
+                    title: title,
+                    wikitext: originalWikitext,
+                    summary: summary,
+                    confirmed: true,
+                    dry_run: false
+                })
+            });
+            const data = await resp.json();
+            document.getElementById('publishStatus').innerHTML = `
+                <div class="badge badge-success" style="padding:0.75rem; width:100%; text-align:left;">
+                    🎉 ${data.message || 'सफलतापूर्वक सहेजा गया!'}
+                </div>
+            `;
+        }
+
+        // Helper Tab API Callers
+        async function runDuplicateMerger() {
+            const wikitext = document.getElementById('wikitextInput').value;
+            const res = await fetch("/api/helpers/duplicate-merger", {
+                method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify({wikitext})
+            }).then(r => r.json());
+            document.getElementById('duplicateMergerResult').innerHTML = `
+                <div class="stat-box" style="text-align:left;">
+                    <strong>डुप्लिकेट मिले:</strong> ${res.duplicates_found}<br/>
+                    ${res.proposed_merges.map(m => `<div><code>${escapeHtml(m.original)}</code> &rarr; <code>${escapeHtml(m.replacement)}</code></div>`).join('')}
+                </div>
+            `;
+        }
+
+        async function runConflictResolver() {
+            const wikitext = document.getElementById('wikitextInput').value;
+            const res = await fetch("/api/helpers/conflict-resolver", {
+                method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify({wikitext})
+            }).then(r => r.json());
+            document.getElementById('conflictResolverResult').innerHTML = `
+                <div class="stat-box" style="text-align:left;">
+                    <strong>नाम विरोध मिले:</strong> ${res.conflicts_count}<br/>
+                    ${res.conflicts.map(c => `<div><strong>${escapeHtml(c.ref_name)}:</strong> ${escapeHtml(c.message)}</div>`).join('')}
+                </div>
+            `;
+        }
+
+        async function runDeadLinks() {
+            const wikitext = document.getElementById('wikitextInput').value;
+            const res = await fetch("/api/helpers/dead-links", {
+                method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify({wikitext})
+            }).then(r => r.json());
+            document.getElementById('deadLinksResult').innerHTML = `
+                <div class="stat-box" style="text-align:left;">
+                    <strong>मृत कड़ियाँ:</strong> ${res.dead_links_count}<br/>
+                    ${res.results.map(r => `<div>${escapeHtml(r.url)} &rarr; <a href="${r.archive_url}" target="_blank">Wayback Snapshot</a></div>`).join('')}
+                </div>
+            `;
+        }
+
+        async function runErrorScanner() {
+            const wikitext = document.getElementById('wikitextInput').value;
+            const res = await fetch("/api/helpers/error-scanner", {
+                method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify({wikitext})
+            }).then(r => r.json());
+            document.getElementById('errorScannerResult').innerHTML = `
+                <div class="stat-box" style="text-align:left;">
+                    <strong>त्रुटियाँ:</strong> ${res.error_count}<br/>
+                    ${res.errors.map(e => `<div><span class="badge badge-danger">${e.type}</span> ${escapeHtml(e.message)}</div>`).join('')}
+                </div>
+            `;
+        }
+
+        async function runValidator() {
+            const wikitext = document.getElementById('wikitextInput').value;
+            const res = await fetch("/api/helpers/validator", {
+                method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify({wikitext})
+            }).then(r => r.json());
+            document.getElementById('validatorResult').innerHTML = `
+                <div class="stat-box" style="text-align:left;">
+                    <pre>${JSON.stringify(res.results, null, 2)}</pre>
+                </div>
+            `;
+        }
+
+        async function runGroupChecker() {
+            const wikitext = document.getElementById('wikitextInput').value;
+            const res = await fetch("/api/helpers/group-checker", {
+                method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify({wikitext})
+            }).then(r => r.json());
+            document.getElementById('groupCheckerResult').innerHTML = `
+                <div class="stat-box" style="text-align:left;">
+                    <strong>संगत है:</strong> ${res.is_consistent ? 'हाँ (Consistent)' : 'नहीं (Inconsistent)'}<br/>
+                    <strong>अनाथ ग्रुप:</strong> ${res.orphaned_groups.join(', ') || 'कोई नहीं'}
+                </div>
+            `;
+        }
+
+        async function runDomainAdvisory() {
+            const wikitext = document.getElementById('wikitextInput').value;
+            const res = await fetch("/api/helpers/domain-advisory", {
+                method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify({wikitext})
+            }).then(r => r.json());
+            document.getElementById('domainAdvisoryResult').innerHTML = `
+                <div class="stat-box" style="text-align:left;">
+                    <strong>ध्वजांकित डोमेन:</strong> ${res.flagged_domains_count}<br/>
+                    ${res.flagged.map(f => `<div><span class="badge badge-warning">${f.domain}</span> ${escapeHtml(f.warning)}</div>`).join('')}
+                </div>
+            `;
+        }
+
+        function escapeHtml(text) {
+            if (!text) return "";
+            return text
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+    </script>
+</body>
+</html>

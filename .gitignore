@@ -1,0 +1,42 @@
+# Virtual Environments
+.venv/
+venv/
+env/
+ENV/
+
+# Python Cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Testing & Linting Cache
+.pytest_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+.tox/
+
+# Local Databases & Data
+*.db
+*.sqlite
+*.sqlite3
+data/
+*.log
+
+# Environment & Secrets
+.env
+.env.local
+
+# IDE & OS
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+
+# Distribution / Packaging
+build/
+dist/
+*.egg-info/
+.agents/
