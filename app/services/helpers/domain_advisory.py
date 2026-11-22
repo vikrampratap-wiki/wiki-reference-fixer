@@ -43,7 +43,7 @@ def check_unreliable_domains(wikitext: str) -> Dict[str, Any]:
     flagged: List[Dict[str, Any]] = []
 
     # Extract all hostnames from URLs in the wikitext
-    url_pattern = re.compile(r'https?://([^\s/\|\]\}\"\'>]+)', re.IGNORECASE)
+    url_pattern = re.compile(r'https?://([^\s/\|\]\}\"\'<>]+)', re.IGNORECASE)
     found_raw = url_pattern.findall(wikitext)
     found_hostnames: Set[str] = set()
     for raw in found_raw:

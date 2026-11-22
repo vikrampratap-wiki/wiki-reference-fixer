@@ -36,8 +36,9 @@ def check_ref_groups(wikitext: str) -> Dict[str, Any]:
 
     # Find all group parameters in reflist templates or <references> tags
     container_template_pattern = re.compile(
-        r'\{\{(?:reflist|संदर्भसूची|सन्दर्भ सूची|टिप्पणी सूची|रेफ़्लिस्ट|'
-        r'संदर्भ\s*सूची|सन्दर्भ\s*सूची)[^}]*\|\s*group\s*=\s*["\']?([^"\'\|\}]+)["\']?',
+        r'\{\{(?:reflist|reflist30em|संदर्भसूची|सन्दर्भसूची|सन्दर्भ\s*सूची|'
+        r'संदर्भ\s*सूची|टिप्पणी\s*सूची|टिप्पणीसूची|रेफ़्लिस्ट|रेफलिट|संसूची|टिसू|'
+        r'हवाले)[^}]*\|\s*group\s*=\s*["\']?([^"\'\|\}]+)["\']?',
         re.IGNORECASE,
     )
     container_tag_pattern = re.compile(

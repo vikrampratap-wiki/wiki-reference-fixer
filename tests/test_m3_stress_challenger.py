@@ -42,7 +42,8 @@ def mock_citoid_global(request: pytest.FixtureRequest, monkeypatch: pytest.Monke
                     "websiteTitle": "परीक्षण जालस्थल",
                 }],
             )
-        respx_mock.get(url__regex=r"^https://hi\.wikipedia\.org/api/rest_v1/data/citation/mediawiki/.*").mock(
+        citoid_url_pattern = r"^https://hi\.wikipedia\.org/api/rest_v1/data/citation/mediawiki/.*"
+        respx_mock.get(url__regex=citoid_url_pattern).mock(
             side_effect=citoid_side_effect
         )
         yield
