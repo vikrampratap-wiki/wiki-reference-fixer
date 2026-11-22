@@ -51,6 +51,10 @@ class Settings(BaseSettings):
         default=["विक्रम प्रताप", "Vikram Pratap"],
         description="Explicit website superadmin usernames with ultimate site authority",
     )
+    ADMIN_PASSWORD: str = Field(
+        default="admin@vikram2026",
+        description="Direct admin password for authentication without Wikipedia OAuth",
+    )
     ADMIN_ONWIKI_PAGE: str = Field(
         default="सदस्य:विक्रम_प्रताप/wiki-ref-fixer-admins.json",
         description="Wikipedia user subpage containing dynamic authorized co-admins",

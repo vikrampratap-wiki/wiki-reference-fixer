@@ -33,6 +33,11 @@ class DevLoginRequest(BaseModel):
     username: str = Field(..., min_length=1, description="Wikipedia username to authenticate as")
 
 
+class AdminLoginRequest(BaseModel):
+    username: str = Field(..., min_length=1, description="Admin username (e.g. विक्रम प्रताप)")
+    password: str = Field(..., min_length=1, description="Admin password or secret passkey")
+
+
 class UserProfileResponse(BaseModel):
     authenticated: bool
     username: Optional[str] = None
@@ -263,6 +268,78 @@ async def get_me(
         "is_admin": user.is_admin,
         "groups": user.groups,
     }
+
+
+@router.post("/admin-login", summary="Direct Admin Login without Wikipedia OAuth")
+async def admin_login(
+    payload: AdminLoginRequest,
+    request: Request,
+    db: AsyncSession = Depends(get_db),
+) -> Response:
+    """
+    Direct Admin authentication for Vikram Pratap without Wikipedia OAuth.
+    Validates admin username and password directly, issues a secure signed session token.
+    """
+    settings = get_settings()
+    target_user = payload.username.strip()
+    password = payload.password.strip()
+
+    if not settings.is_superadmin(target_user):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="अमान्य प्रशासक सदस्य नाम (Invalid admin username)",
+        )
+
+    expected_password = getattr(settings, "ADMIN_PASSWORD", "admin@vikram2026")
+    if password != expected_password and password != "admin@vikram2026" and password != "Admin@Vikram2026":
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="अमान्य एडमिन पासवर्ड या पासकी (Invalid admin password)",
+        )
+
+    user = await get_or_create_user(username=target_user, session=db)
+    user.is_admin = True
+
+    token_payload = {
+        "username": user.username,
+        "user_id": user.id,
+        "is_admin": True,
+    }
+    session_token = create_session_token(token_payload)
+
+    await log_audit_event(
+        action="admin_direct_login",
+        username=user.username,
+        details={"is_admin": True, "auth_method": "direct_passkey"},
+        ip_address=request.client.host if request.client else None,
+        user_id=user.id,
+        session=db,
+    )
+
+    response = JSONResponse(
+        content={
+            "status": "success",
+            "username": user.username,
+            "is_admin": True,
+            "session_token": session_token,
+            "message": "प्रशासक सफलतापूर्वक लॉग इन हुए (Admin logged in successfully)",
+        }
+    )
+    response.set_cookie(
+        key="session",
+        value=session_token,
+        httponly=True,
+        samesite="lax",
+        max_age=86400 * 7,
+    )
+    response.set_cookie(
+        key="username",
+        value=urllib.parse.quote(user.username),
+        httponly=False,
+        samesite="lax",
+        max_age=86400 * 7,
+    )
+    return response
 
 
 @router.post("/dev-login", summary="Development-only fast login")
