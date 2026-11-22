@@ -1284,9 +1284,6 @@
 
                 // Check for missing {{सन्दर्भ सूची}}
                 const hasRefList = /\{\{\s*(?:सन्दर्भ\s*सूची|reflist|संदर्भ\s*सूची|references)\b/i.test(wikitext) || /<references\s*\/?>/i.test(wikitext);
-                if (refs.length > 0 && !hasRefList) {
-                    syntaxErrorCount++;
-                }
 
                 // Calculate Health Score (0-100)
                 let score = 100;
@@ -1688,34 +1685,93 @@
             const contentMap = new Map();
             const duplicates = [];
 
+            // Group non-self-closing references by (content, group)
             refs.forEach((ref, idx) => {
                 if (ref.isSelfClosing) return;
                 const cleanContent = ref.innerContent.trim();
                 if (!cleanContent) return;
 
-                if (!contentMap.has(cleanContent)) {
-                    contentMap.set(cleanContent, { firstRef: ref, count: 1, idx });
+                const groupKey = ref.group ? ref.group.trim() : "";
+                const key = `${groupKey}:::${cleanContent}`;
+
+                if (!contentMap.has(key)) {
+                    contentMap.set(key, { firstRef: ref, count: 1, idx, subsequentRefs: [], cleanContent, group: ref.group });
                 } else {
-                    const entry = contentMap.get(cleanContent);
+                    const entry = contentMap.get(key);
                     entry.count++;
-                    const refName = entry.firstRef.name || `ref_${entry.idx + 1}`;
-                    duplicates.push({
-                        original: ref.fullMatch,
-                        replacement: `<ref name="${refName}" />`,
-                        content: cleanContent
+                    entry.subsequentRefs.push(ref);
+                }
+            });
+
+            // Find all pre-existing names to prevent collisions
+            const usedNames = new Set();
+            refs.forEach(r => { if (r.name) usedNames.add(r.name); });
+            let slugCounter = 1;
+
+            contentMap.forEach((entry) => {
+                if (entry.count > 1) {
+                    let refName = entry.firstRef.name;
+                    const groupAttr = entry.group ? ` group="${entry.group}"` : "";
+
+                    if (!refName) {
+                        while (usedNames.has(`ref_${slugCounter}`)) {
+                            slugCounter++;
+                        }
+                        refName = `ref_${slugCounter}`;
+                        usedNames.add(refName);
+                        slugCounter++;
+
+                        // Propose upgrading the first occurrence to define the named reference
+                        duplicates.push({
+                            original: entry.firstRef.fullMatch,
+                            replacement: `<ref name="${refName}"${groupAttr}>${entry.cleanContent}</ref>`,
+                            content: entry.cleanContent,
+                            span_start: entry.firstRef.spanStart,
+                            span_end: entry.firstRef.spanEnd,
+                            is_definition: true,
+                            firstRef: entry.firstRef,
+                            target_name: refName
+                        });
+                    }
+
+                    // Propose replacing subsequent occurrences with self-closing named ref
+                    entry.subsequentRefs.forEach(subRef => {
+                        duplicates.push({
+                            original: subRef.fullMatch,
+                            replacement: `<ref name="${refName}"${groupAttr} />`,
+                            content: entry.cleanContent,
+                            span_start: subRef.spanStart,
+                            span_end: subRef.spanEnd,
+                            is_definition: false,
+                            firstRef: entry.firstRef,
+                            target_name: refName
+                        });
                     });
                 }
             });
 
+            window.lastClientDuplicates = duplicates;
+
             if (duplicates.length === 0) {
                 resContainer.innerHTML = `<span class="badge badge-success">✓ कोई डुप्लिकेट सन्दर्भ नहीं मिला।</span> सभी सन्दर्भ अद्वितीय हैं।`;
             } else {
+                const dupCount = duplicates.filter(d => !d.is_definition).length;
                 resContainer.innerHTML = `
-                    <strong>डुप्लिकेट मिले:</strong> ${duplicates.length}<br/>
+                    <strong>डुप्लिकेट मिले:</strong> ${dupCount}<br/>
                     <p style="font-size:0.88rem; color:var(--text-muted); margin-bottom:0.5rem;">समान सामग्री वाले सन्दर्भों को नामजद टैग में विलय करने का प्रस्ताव:</p>
-                    ${duplicates.map(d => `<div style="margin-bottom:0.4rem;"><code>${escapeHtml(d.original)}</code> &rarr; <code>${escapeHtml(d.replacement)}</code></div>`).join('')}
+                    ${duplicates.map(d => `<div style="margin-bottom:0.4rem;">${d.is_definition ? '<span class="badge badge-primary">नाम परिभाषा</span> ' : '<span class="badge badge-secondary">विलय</span> '}<code>${escapeHtml(d.original)}</code> &rarr; <code>${escapeHtml(d.replacement)}</code></div>`).join('')}
+                    <button class="btn btn-outline" style="margin-top:0.5rem;" onclick="applyClientDuplicateMerges()">✓ डुप्लिकेट विलय लागू करें (Apply Merges)</button>
                 `;
             }
+        }
+
+        function applyClientDuplicateMerges() {
+            if (!window.lastClientDuplicates || window.lastClientDuplicates.length === 0) return;
+            const wikitext = document.getElementById('wikitextInput').value;
+            const merged = ClientEngine.applyGranularModifications(wikitext, window.lastClientDuplicates);
+            document.getElementById('wikitextInput').value = merged;
+            alert("✓ डुप्लिकेट सन्दर्भों का विलय सफलतापूर्वक लागू किया गया!");
+            runDuplicateMerger();
         }
 
         // Helper 2: Conflict Resolver
@@ -1847,6 +1903,7 @@
             // Client-side implementation
             const errors = [];
             const refs = ClientEngine.extractReferences(wikitext);
+            const cleanWikitext = wikitext.replace(/<!--[\s\S]*?-->/g, '');
 
             // Empty refs
             refs.forEach(ref => {
@@ -1862,10 +1919,18 @@
             }
 
             // Unclosed brackets
-            const openBrackets = (wikitext.match(/\{\{/g) || []).length;
-            const closeBrackets = (wikitext.match(/\}\}/g) || []).length;
+            const openBrackets = (cleanWikitext.match(/\{\{/g) || []).length;
+            const closeBrackets = (cleanWikitext.match(/\}\}/g) || []).length;
             if (openBrackets !== closeBrackets) {
                 errors.push({ type: "असंतुलित कोष्ठक", message: `साँचा कोष्ठक असंतुलित हैं: {{ (${openBrackets}) बनाम }} (${closeBrackets})` });
+            }
+
+            // Unclosed ref tags
+            const openTags = (cleanWikitext.match(/<ref(?:\s+[^>]*)?>/gi) || []).length;
+            const selfClosingTags = (cleanWikitext.match(/<ref(?:\s+[^>]*)?\/>/gi) || []).length;
+            const closeTags = (cleanWikitext.match(/<\/ref>/gi) || []).length;
+            if ((openTags - selfClosingTags) > closeTags) {
+                errors.push({ type: "अपूर्ण संदर्भ टैग", message: "लेख में बिना बंद किया गया <ref> टैग मौजूद है।" });
             }
 
             if (errors.length === 0) {
@@ -1998,12 +2063,18 @@
             const refGroups = new Set();
             refs.forEach(r => { if (r.group) refGroups.add(r.group); });
 
-            const containerGroupMatches = wikitext.match(/group\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s\|\}]+))/gi) || [];
             const containerGroups = new Set();
-            containerGroupMatches.forEach(m => {
-                const g = m.replace(/group\s*=\s*["']?/i, "").replace(/["']?$/, "").trim();
-                containerGroups.add(g);
-            });
+            // Match <references ... group="...">
+            const tagRegex = /<references\s+[^>]*\bgroup\s*=\s*["']?([^"'>\s]+)["']?[^>]*>/gi;
+            let m;
+            while ((m = tagRegex.exec(wikitext)) !== null) {
+                if (m[1]) containerGroups.add(m[1].trim());
+            }
+            // Match {{reflist|group=...}} and Hindi variants
+            const tplRegex = /\{\{\s*(?:reflist|reflist30em|संदर्भसूची|सन्दर्भसूची|सन्दर्भ\s*सूची|संदर्भ\s*सूची|टिप्पणी\s*सूची|टिप्पणीसूची|रेफ़्लिस्ट|रेफलिस्ट|संसूची|सूत्र\s*सूची|सूत्र सूची|टिसू|नोट्स|हवाले)[^}]*\|\s*group\s*=\s*["']?([^"'\|\}]+)["']?/gi;
+            while ((m = tplRegex.exec(wikitext)) !== null) {
+                if (m[1]) containerGroups.add(m[1].trim());
+            }
 
             const orphaned = [];
             refGroups.forEach(g => {
@@ -2042,7 +2113,7 @@
             }
 
             // Client-side implementation
-            const urlRegex = /https?:\/\/([^\s<>"'\/\]]+)/gi;
+            const urlRegex = /https?:\/\/([^\s<>"'\/\]\?\#]+)/gi;
             const foundDomains = new Set();
             let match;
             while ((match = urlRegex.exec(wikitext)) !== null) {
