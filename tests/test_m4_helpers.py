@@ -401,6 +401,17 @@ class TestGroupChecker:
         assert len(res["orphaned_groups"]) == 0
         assert res["is_consistent"] is True
 
+    def test_hindi_reflist_aliases_support(self):
+        aliases = ["टिप्पणीसूची", "संसूची", "सूत्र सूची", "टिसू", "नोट्स"]
+        for alias in aliases:
+            wikitext = (
+                'पाठ<ref group="टिप्पणी">विवरण</ref>\n'
+                f'== टिप्पणियाँ ==\n{{{{{alias}|group=टिप्पणी}}}}'
+            )
+            res = check_ref_groups(wikitext)
+            assert len(res["orphaned_groups"]) == 0, f"Failed for alias {alias}"
+            assert res["is_consistent"] is True, f"Failed for alias {alias}"
+
 
 # --- Helper 8: Domain Advisory ---
 class TestDomainAdvisory:
