@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>विकिपीडिया सन्दर्भ सुधार उपकरण (Hindi Wikipedia Reference Fixer)</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
             --primary: #0645ad;
@@ -14,13 +17,16 @@
             --danger-bg: #ffebee;
             --warning: #f57f17;
             --warning-bg: #fffde7;
+            --info: #0288d1;
+            --info-bg: #e1f5fe;
             --bg: #f8f9fa;
             --card: #ffffff;
             --text: #202122;
             --text-muted: #54595d;
             --border: #a2a9b1;
             --border-light: #eaecf0;
-            --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans Devanagari", "Lohit Devanagari", sans-serif;
+            --font-family: "Noto Sans Devanagari", "Lohit Devanagari", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            --line-height-devanagari: 1.68;
         }
 
         * {
@@ -33,8 +39,13 @@
             font-family: var(--font-family);
             background-color: var(--bg);
             color: var(--text);
-            line-height: 1.6;
+            line-height: var(--line-height-devanagari);
             padding: 0;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        p, div, span, label, input, textarea, button, h1, h2, h3, h4, li, a {
+            line-height: var(--line-height-devanagari);
         }
 
         header {
@@ -46,6 +57,9 @@
             align-items: center;
             flex-wrap: wrap;
             gap: 1rem;
+            position: sticky;
+            top: 0;
+            z-index: 100;
         }
 
         .brand {
@@ -55,12 +69,13 @@
         }
 
         .brand-logo {
-            font-size: 2rem;
+            font-size: 2.2rem;
             color: var(--primary);
+            line-height: 1;
         }
 
         .brand h1 {
-            font-size: 1.25rem;
+            font-size: 1.3rem;
             font-weight: 700;
             color: var(--primary);
         }
@@ -74,6 +89,35 @@
             display: flex;
             gap: 0.75rem;
             align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .mode-pill {
+            cursor: pointer;
+            padding: 0.35rem 0.85rem;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            transition: all 0.2s ease;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+            border: 1px solid transparent;
+        }
+        .mode-pill:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+        }
+        .mode-pill.client-side {
+            background-color: var(--success-bg);
+            color: var(--success);
+            border-color: #a5d6a7;
+        }
+        .mode-pill.backend-api {
+            background-color: var(--info-bg);
+            color: var(--primary);
+            border-color: #90caf9;
         }
 
         .container {
@@ -88,58 +132,63 @@
             border-radius: 8px;
             padding: 1.25rem;
             margin-bottom: 1.5rem;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
         }
 
         .card-title {
-            font-size: 1.15rem;
-            font-weight: 600;
+            font-size: 1.18rem;
+            font-weight: 700;
             margin-bottom: 1rem;
             display: flex;
             align-items: center;
             justify-content: space-between;
             border-bottom: 1px solid var(--border-light);
-            padding-bottom: 0.5rem;
+            padding-bottom: 0.6rem;
+            flex-wrap: wrap;
+            gap: 0.5rem;
         }
 
         .form-group {
-            margin-bottom: 1rem;
+            margin-bottom: 1.1rem;
         }
 
         label {
             display: block;
             font-weight: 600;
-            margin-bottom: 0.4rem;
+            margin-bottom: 0.45rem;
             font-size: 0.95rem;
         }
 
-        input[type="text"], textarea {
+        input[type="text"], textarea, select {
             width: 100%;
             padding: 0.75rem;
             border: 1px solid var(--border);
             border-radius: 4px;
             font-family: inherit;
             font-size: 0.95rem;
-            transition: border-color 0.2s;
+            line-height: var(--line-height-devanagari);
+            transition: border-color 0.2s, box-shadow 0.2s;
+            background-color: #ffffff;
         }
 
-        input[type="text"]:focus, textarea:focus {
+        input[type="text"]:focus, textarea:focus, select:focus {
             outline: none;
             border-color: var(--primary);
             box-shadow: 0 0 0 2px rgba(6, 69, 173, 0.15);
         }
 
         textarea {
-            min-height: 140px;
-            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-            font-size: 0.9rem;
+            min-height: 160px;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Noto Sans Devanagari", monospace;
+            font-size: 0.92rem;
+            resize: vertical;
         }
 
         .btn-group {
             display: flex;
             flex-wrap: wrap;
             gap: 0.75rem;
-            margin-top: 0.5rem;
+            margin-top: 0.6rem;
         }
 
         .btn {
@@ -155,6 +204,7 @@
             border: 1px solid transparent;
             transition: all 0.2s;
             text-decoration: none;
+            line-height: 1.4;
         }
 
         .btn-primary {
@@ -179,7 +229,46 @@
             color: var(--text);
         }
         .btn-outline:hover {
-            background-color: var(--bg);
+            background-color: #f0f2f5;
+        }
+
+        .btn-danger {
+            background-color: var(--danger);
+            color: #ffffff;
+        }
+        .btn-danger:hover {
+            background-color: #b71c1c;
+        }
+
+        .btn:disabled {
+            opacity: 0.55;
+            cursor: not-allowed;
+        }
+
+        /* Banner alerts */
+        .alert-banner {
+            border-radius: 6px;
+            padding: 0.9rem 1.25rem;
+            margin-bottom: 1.25rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-size: 0.92rem;
+        }
+        .alert-banner.info {
+            background-color: var(--info-bg);
+            border: 1px solid #b3e5fc;
+            color: #01579b;
+        }
+        .alert-banner.warning {
+            background-color: var(--warning-bg);
+            border: 1px solid #ffe082;
+            color: #e65100;
+        }
+        .alert-banner.success {
+            background-color: var(--success-bg);
+            border: 1px solid #c8e6c9;
+            color: #1b5e20;
         }
 
         /* Scorecard Grid */
@@ -187,7 +276,7 @@
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
             gap: 1rem;
-            margin-bottom: 1.5rem;
+            margin-bottom: 1.25rem;
         }
 
         .stat-box {
@@ -199,27 +288,31 @@
         }
 
         .stat-number {
-            font-size: 2rem;
+            font-size: 2.1rem;
             font-weight: 700;
             color: var(--primary);
+            line-height: 1.2;
         }
 
         .stat-label {
-            font-size: 0.85rem;
+            font-size: 0.88rem;
             color: var(--text-muted);
-            margin-top: 0.25rem;
+            margin-top: 0.35rem;
+            font-weight: 500;
         }
 
         .badge {
             display: inline-block;
-            padding: 0.25rem 0.6rem;
-            font-size: 0.8rem;
+            padding: 0.28rem 0.65rem;
+            font-size: 0.82rem;
             font-weight: 600;
             border-radius: 4px;
+            line-height: 1.3;
         }
         .badge-success { background: var(--success-bg); color: var(--success); }
         .badge-warning { background: var(--warning-bg); color: var(--warning); }
         .badge-danger { background: var(--danger-bg); color: var(--danger); }
+        .badge-info { background: var(--info-bg); color: var(--info); }
 
         /* Diff Section */
         .diff-item {
@@ -228,10 +321,11 @@
             padding: 1rem;
             margin-bottom: 1rem;
             background: #ffffff;
-            transition: border-color 0.2s;
+            transition: border-color 0.2s, box-shadow 0.2s;
         }
         .diff-item:hover {
             border-color: var(--primary);
+            box-shadow: 0 2px 6px rgba(0,0,0,0.04);
         }
 
         .diff-header {
@@ -249,6 +343,7 @@
             gap: 0.6rem;
             font-weight: 600;
             cursor: pointer;
+            font-size: 0.95rem;
         }
 
         .diff-columns {
@@ -264,12 +359,15 @@
         }
 
         .diff-box {
-            padding: 0.75rem;
+            padding: 0.85rem;
             border-radius: 4px;
-            font-family: ui-monospace, SFMono-Regular, monospace;
-            font-size: 0.85rem;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, monospace;
+            font-size: 0.88rem;
+            line-height: 1.5;
             word-break: break-all;
             white-space: pre-wrap;
+            max-height: 240px;
+            overflow-y: auto;
         }
 
         .diff-orig {
@@ -291,60 +389,114 @@
             border: 1px solid #ffe082;
             border-radius: 6px;
             padding: 1.25rem;
-            margin: 1.5rem 0;
+            margin: 1.25rem 0;
             display: flex;
             align-items: flex-start;
             gap: 1rem;
         }
 
         .zero-autosave-icon {
-            font-size: 1.75rem;
+            font-size: 2rem;
+            line-height: 1;
         }
 
         /* Companion Helpers Tabs */
         .tabs {
             display: flex;
             overflow-x: auto;
-            border-bottom: 1px solid var(--border-light);
-            margin-bottom: 1rem;
+            border-bottom: 2px solid var(--border-light);
+            margin-bottom: 1.25rem;
+            gap: 0.25rem;
+            padding-bottom: 2px;
         }
 
         .tab-btn {
-            padding: 0.6rem 1rem;
+            padding: 0.65rem 1.1rem;
             background: none;
             border: none;
-            border-bottom: 2px solid transparent;
+            border-bottom: 3px solid transparent;
             font-weight: 600;
-            font-size: 0.9rem;
+            font-size: 0.92rem;
             color: var(--text-muted);
             cursor: pointer;
             white-space: nowrap;
+            transition: all 0.2s;
+            line-height: 1.4;
+        }
+
+        .tab-btn:hover {
+            color: var(--primary);
+            background-color: #f8f9fa;
         }
 
         .tab-btn.active {
             color: var(--primary);
             border-bottom-color: var(--primary);
+            background-color: #ffffff;
         }
 
         .tab-content {
             display: none;
+            animation: fadeIn 0.2s ease-in;
         }
         .tab-content.active {
             display: block;
         }
 
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(2px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Modal Styles */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.55);
+            z-index: 999;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+        }
+        .modal-overlay.active {
+            display: flex;
+        }
+        .modal-card {
+            background: #ffffff;
+            border-radius: 8px;
+            max-width: 650px;
+            width: 100%;
+            padding: 1.5rem;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.18);
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
         footer {
             text-align: center;
-            padding: 2rem 1rem;
+            padding: 2.5rem 1rem;
             color: var(--text-muted);
-            font-size: 0.85rem;
+            font-size: 0.88rem;
             border-top: 1px solid var(--border-light);
-            margin-top: 2rem;
+            margin-top: 2.5rem;
+        }
+
+        .helper-card {
+            background: #fdfdfd;
+            border: 1px solid var(--border-light);
+            border-radius: 6px;
+            padding: 1rem;
+            margin-top: 1rem;
         }
     </style>
 </head>
 <body>
 
+    <!-- Header -->
     <header>
         <div class="brand">
             <span class="brand-logo">📚</span>
@@ -354,56 +506,72 @@
             </div>
         </div>
         <div class="nav-actions">
+            <span id="modeBadge" class="mode-pill client-side" onclick="openModeModal()" title="मोड बदलने के लिए क्लिक करें">
+                🌐 मोड: क्लाइंट-साइड (GitHub Pages)
+            </span>
             <span id="userStatus" class="badge badge-success">लॉगिन: विकिपीडिया सदस्य</span>
-            <a href="/api/auth/login" class="btn btn-outline" style="font-size:0.85rem; padding:0.4rem 0.8rem;">पुनः लॉगिन</a>
+            <button class="btn btn-outline" style="font-size:0.85rem; padding:0.4rem 0.8rem;" onclick="openModeModal()">⚙️ सेटिंग्स</button>
         </div>
     </header>
 
     <div class="container">
+        <!-- Live Mode Banner -->
+        <div id="modeBanner" class="alert-banner info">
+            <span>ℹ️ <strong>सक्रिय मोड:</strong> क्लाइंट-साइड (GitHub Pages)। सभी पार्सिंग, Citoid उद्धरण व 8 सहायक मॉड्यूल बिना बैकएंड सर्वर के सीधे आपके ब्राउज़र में सक्रिय हैं।</span>
+        </div>
+
         <!-- Input Section -->
         <div class="card">
             <h2 class="card-title">
                 <span>सामग्री इनपुट (Input Wikitext or Article Title)</span>
-                <span class="badge badge-success">AST Parser & Citoid Engine</span>
+                <span class="badge badge-success">Wikitext Parser & Citoid Engine</span>
             </h2>
             <div class="form-group">
                 <label for="articleTitle">विकिपीडिया लेख का शीर्षक (वैकल्पिक):</label>
-                <div style="display:flex; gap:0.5rem;">
-                    <input type="text" id="articleTitle" placeholder="उदा. चंद्रयान-3 या महात्मा गांधी" />
-                    <button class="btn btn-outline" onclick="fetchArticle()">फेच करें</button>
+                <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
+                    <input type="text" id="articleTitle" placeholder="उदा. चंद्रयान-3 या महात्मा गांधी" style="flex:1; min-width:240px;" />
+                    <button class="btn btn-outline" onclick="fetchArticle()">
+                        📥 लेख फेच करें (Fetch Article)
+                    </button>
                 </div>
             </div>
             <div class="form-group">
                 <label for="wikitextInput">Wikitext सामग्री:</label>
-                <textarea id="wikitextInput" placeholder="यहाँ विकिटेक्स्ट पेस्ट करें जिसमें नग्न URLs या सुधार योग्य सन्दर्भ हों..."></textarea>
+                <textarea id="wikitextInput" placeholder="यहाँ विकिटेक्स्ट पेस्ट करें जिसमें नग्न URLs ([https://...] या <ref>https://...</ref>) अथवा सुधार योग्य सन्दर्भ हों..."></textarea>
             </div>
             <div class="btn-group">
                 <button class="btn btn-primary" onclick="scanWikitext()">
                     🔍 सन्दर्भ स्कैन करें (Analyze & Propose)
                 </button>
                 <button class="btn btn-outline" onclick="loadSampleText()">
-                    नमूना विकिटेक्स्ट लोड करें
+                    📄 नमूना विकिटेक्स्ट लोड करें
                 </button>
                 <button class="btn btn-outline" onclick="clearAll()">
-                    साफ़ करें
+                    🧹 साफ़ करें
+                </button>
+                <button class="btn btn-outline" onclick="saveLocalDraft()">
+                    💾 ड्राफ्ट सहेजें
+                </button>
+                <button class="btn btn-outline" onclick="restoreLocalDraft()">
+                    📂 ड्राफ्ट लोड करें
                 </button>
             </div>
         </div>
 
-        <!-- Reference Health Scorecard -->
+        <!-- Reference Health Scorecard Section -->
         <div class="card" id="scorecardCard" style="display: none;">
             <h2 class="card-title">
                 <span>सन्दर्भ स्वास्थ्य स्कोरकार्ड (Reference Health Scorecard)</span>
-                <span id="healthScoreBadge" class="badge badge-success">उत्कृष्ट</span>
+                <span id="healthScoreBadge" class="badge badge-success">उत्कृष्ट (Grade A)</span>
             </h2>
             <div class="scorecard-grid">
                 <div class="stat-box">
                     <div class="stat-number" id="healthScoreNum">100</div>
-                    <div class="stat-label">स्वास्थ्य स्कोर (0-100)</div>
+                    <div class="stat-label">समग्र स्वास्थ्य स्कोर (0-100)</div>
                 </div>
                 <div class="stat-box">
                     <div class="stat-number" id="totalRefsNum">0</div>
-                    <div class="stat-label">कुल सन्दर्भ (<ref>)</div>
+                    <div class="stat-label">कुल सन्दर्भ (&lt;ref&gt;)</div>
                 </div>
                 <div class="stat-box">
                     <div class="stat-number" id="bareUrlsNum" style="color:var(--danger);">0</div>
@@ -413,7 +581,12 @@
                     <div class="stat-number" id="proposedFixesNum" style="color:var(--success);">0</div>
                     <div class="stat-label">सुधार प्रस्ताव (Modifications)</div>
                 </div>
+                <div class="stat-box">
+                    <div class="stat-number" id="syntaxErrorsNum" style="color:var(--warning);">0</div>
+                    <div class="stat-label">सिंटैक्स त्रुटियाँ</div>
+                </div>
             </div>
+            <div id="scorecardRecommendations" style="font-size:0.92rem; color:var(--text-muted); background:var(--bg); padding:0.85rem; border-radius:6px;"></div>
         </div>
 
         <!-- Granular Diff Review Section -->
@@ -421,14 +594,14 @@
             <h2 class="card-title">
                 <span>साइड-बाय-साइड Granular Diff समीक्षा</span>
                 <div>
-                    <label style="font-size:0.85rem; cursor:pointer;">
+                    <label style="font-size:0.9rem; cursor:pointer; font-weight:600;">
                         <input type="checkbox" id="selectAllCheckbox" onchange="toggleSelectAll(this.checked)" checked />
-                        सभी चुनें / छोड़ें
+                        सभी चुनें / छोड़ें (Select/Deselect All)
                     </label>
                 </div>
             </h2>
-            <p style="font-size:0.9rem; color:var(--text-muted); margin-bottom:1rem;">
-                प्रत्येक सुधार को अलग-अलग स्वीकार या अस्वीकार करने के लिए चेकबॉक्स का उपयोग करें। केवल चयनित सुधार ही लागू होंगे:
+            <p style="font-size:0.92rem; color:var(--text-muted); margin-bottom:1rem;">
+                प्रत्येक सुधार को अलग-अलग स्वीकार (✓) या अस्वीकार करने के लिए चेकबॉक्स का उपयोग करें। केवल चयनित सुधार ही लागू किए जाएंगे:
             </p>
             <div id="diffItemsList"></div>
         </div>
@@ -437,65 +610,92 @@
         <div class="card" id="helpersCard">
             <h2 class="card-title">
                 <span>8 सहायक मॉड्यूल (Companion Helper Modules)</span>
-                <span class="badge badge-success">सहायक उपकरण</span>
+                <span class="badge badge-success">विशेषज्ञ उपकरण</span>
             </h2>
             <div class="tabs">
-                <button class="tab-btn active" onclick="openTab('tabDuplicate')">डुप्लिकेट विलय</button>
-                <button class="tab-btn" onclick="openTab('tabConflict')">नाम विरोध निवारक</button>
-                <button class="tab-btn" onclick="openTab('tabDeadLink')">मृत कड़ी / Wayback</button>
-                <button class="tab-btn" onclick="openTab('tabErrors')">त्रुटि स्कैनर</button>
-                <button class="tab-btn" onclick="openTab('tabValidator')">ISBN / DOI सत्यापन</button>
-                <button class="tab-btn" onclick="openTab('tabGroup')">ग्रुप संगति</button>
-                <button class="tab-btn" onclick="openTab('tabAdvisory')">अविश्वसनीय स्रोत</button>
+                <button class="tab-btn active" onclick="openTab(event, 'tabDuplicate')">1. डुप्लिकेट विलय</button>
+                <button class="tab-btn" onclick="openTab(event, 'tabConflict')">2. नाम विरोध निवारक</button>
+                <button class="tab-btn" onclick="openTab(event, 'tabDeadLink')">3. मृत कड़ी / Wayback</button>
+                <button class="tab-btn" onclick="openTab(event, 'tabErrors')">4. त्रुटि स्कैनर</button>
+                <button class="tab-btn" onclick="openTab(event, 'tabValidator')">5. ISBN / DOI सत्यापन</button>
+                <button class="tab-btn" onclick="openTab(event, 'tabGroup')">6. ग्रुप संगति</button>
+                <button class="tab-btn" onclick="openTab(event, 'tabAdvisory')">7. अविश्वसनीय स्रोत</button>
+                <button class="tab-btn" onclick="openTab(event, 'tabDraft')">8. स्थानीय ड्राफ्ट व पैच</button>
             </div>
 
             <!-- Tab 1: Duplicate Merger -->
             <div id="tabDuplicate" class="tab-content active">
-                <p>समान URL या सामग्री वाले संदर्भों को <code>&lt;ref name="..."&gt;</code> में विलय करने की जाँच करें।</p>
-                <button class="btn btn-outline" style="margin-top:0.75rem;" onclick="runDuplicateMerger()">डुप्लिकेट जाँचें</button>
-                <div id="duplicateMergerResult" style="margin-top:0.75rem;"></div>
+                <p>समान URL या सामग्री वाले भिन्न सन्दर्भों को पहचान कर <code>&lt;ref name="..." /&gt;</code> में विलय करने की अनुशंसा करता है।</p>
+                <button class="btn btn-outline" style="margin-top:0.75rem;" onclick="runDuplicateMerger()">
+                    🔄 डुप्लिकेट सन्दर्भ जाँचें (Check Duplicates)
+                </button>
+                <div id="duplicateMergerResult" class="helper-card" style="display:none;"></div>
             </div>
 
             <!-- Tab 2: Conflict Resolver -->
             <div id="tabConflict" class="tab-content">
-                <p>एक ही सन्दर्भ नाम (name attribute) के तहत भिन्न सामग्रियाँ पहचानें ताकि डेटा ओवरराइट न हो।</p>
-                <button class="btn btn-outline" style="margin-top:0.75rem;" onclick="runConflictResolver()">विरोध जाँचें</button>
-                <div id="conflictResolverResult" style="margin-top:0.75rem;"></div>
+                <p>एक ही नाम विशेषता (<code>&lt;ref name="foo"&gt;</code>) के तहत भिन्न सामग्रियाँ पहचानता है ताकि विकिपीडिया पर डेटा ओवरराइटिंग न हो।</p>
+                <button class="btn btn-outline" style="margin-top:0.75rem;" onclick="runConflictResolver()">
+                    ⚠️ नाम विरोध जाँचें (Check Conflicts)
+                </button>
+                <div id="conflictResolverResult" class="helper-card" style="display:none;"></div>
             </div>
 
             <!-- Tab 3: Dead Links / Wayback -->
             <div id="tabDeadLink" class="tab-content">
-                <p>404 या मृत कड़ियों की पहचान कर Internet Archive (Wayback Machine) से आर्काइव प्राप्त करें।</p>
-                <button class="btn btn-outline" style="margin-top:0.75rem;" onclick="runDeadLinks()">मृत कड़ियाँ जाँचें</button>
-                <div id="deadLinksResult" style="margin-top:0.75rem;"></div>
+                <p>Internet Archive Wayback Machine API द्वारा 404 या मृत कड़ियों के सक्रिय स्नैपशॉट ढूंढता है और <code>archive-url</code> व <code>archive-date</code> जोड़ता है।</p>
+                <button class="btn btn-outline" style="margin-top:0.75rem;" onclick="runDeadLinks()">
+                    🌐 मृत कड़ियाँ व Wayback स्नैपशॉट खोजें
+                </button>
+                <div id="deadLinksResult" class="helper-card" style="display:none;"></div>
             </div>
 
             <!-- Tab 4: Error Scanner -->
             <div id="tabErrors" class="tab-content">
-                <p>रिक्त <code>&lt;ref&gt;</code>, अपरिभाषित नाम, और बिना सन्दर्भ सूची वाले लेखों की पहचान करें।</p>
-                <button class="btn btn-outline" style="margin-top:0.75rem;" onclick="runErrorScanner()">सिंटैक्स त्रुटियाँ जाँचें</button>
-                <div id="errorScannerResult" style="margin-top:0.75rem;"></div>
+                <p>रिक्त <code>&lt;ref&gt;</code>, अपरिभाषित नाम वाले सन्दर्भ, छूटे कोष्ठक और बिना <code>{{सन्दर्भ सूची}}</code> वाले लेखों की पहचान करता है।</p>
+                <button class="btn btn-outline" style="margin-top:0.75rem;" onclick="runErrorScanner()">
+                    🔍 सिंटैक्स त्रुटियाँ स्कैन करें
+                </button>
+                <div id="errorScannerResult" class="helper-card" style="display:none;"></div>
             </div>
 
             <!-- Tab 5: Validator -->
             <div id="tabValidator" class="tab-content">
-                <p>ISBN, ISSN, DOI का चेकसम सत्यापन और देवनागरी अंकों का मानकीकरण करें।</p>
-                <button class="btn btn-outline" style="margin-top:0.75rem;" onclick="runValidator()">पहचानकर्ता सत्यापित करें</button>
-                <div id="validatorResult" style="margin-top:0.75rem;"></div>
+                <p>ISBN-10, ISBN-13 (mod 10 चेकसम), ISSN (mod 11 चेकसम), DOI सिंटैक्स और देवनागरी अंकों (०-९ &rarr; 0-9) का सत्यापन व मानकीकरण करता है।</p>
+                <button class="btn btn-outline" style="margin-top:0.75rem;" onclick="runValidator()">
+                    🔢 ISBN / ISSN / DOI / तिथि सत्यापित करें
+                </button>
+                <div id="validatorResult" class="helper-card" style="display:none;"></div>
             </div>
 
             <!-- Tab 6: Group Checker -->
             <div id="tabGroup" class="tab-content">
-                <p>जाँचें कि क्या <code>&lt;ref group="..."&gt;</code> के लिए संबंधित <code>{{सन्दर्भ सूची|group=...}}</code> मौजूद है।</p>
-                <button class="btn btn-outline" style="margin-top:0.75rem;" onclick="runGroupChecker()">ग्रुप संगति जाँचें</button>
-                <div id="groupCheckerResult" style="margin-top:0.75rem;"></div>
+                <p>जाँचता है कि क्या प्रत्येक <code>&lt;ref group="..."&gt;</code> के लिए पृष्ठ पर संबंधित <code>{{सन्दर्भ सूची|group=...}}</code> कंटेनर उपस्थित है।</p>
+                <button class="btn btn-outline" style="margin-top:0.75rem;" onclick="runGroupChecker()">
+                    🏷️ संदर्भ ग्रुप संगति जाँचें
+                </button>
+                <div id="groupCheckerResult" class="helper-card" style="display:none;"></div>
             </div>
 
             <!-- Tab 7: Domain Advisory -->
             <div id="tabAdvisory" class="tab-content">
-                <p>विकिपीडिया नीति (WP:RSP) के अनुसार सोशल मीडिया व गैर-विश्वसनीय स्रोतों पर सलाहकार चेतावनी बैज।</p>
-                <button class="btn btn-outline" style="margin-top:0.75rem;" onclick="runDomainAdvisory()">डोमेन जाँचें</button>
-                <div id="domainAdvisoryResult" style="margin-top:0.75rem;"></div>
+                <p>हिन्दी विकिपीडिया नीति (WP:RSP) के अनुसार सोशल मीडिया व गैर-विश्वसनीय स्रोतों (Twitter, Facebook, Blogspot आदि) पर सलाहकार चेतावनी बैज प्रदर्शित करता है।</p>
+                <button class="btn btn-outline" style="margin-top:0.75rem;" onclick="runDomainAdvisory()">
+                    🛡️ अविश्वसनीय डोमेन जाँचें
+                </button>
+                <div id="domainAdvisoryResult" class="helper-card" style="display:none;"></div>
+            </div>
+
+            <!-- Tab 8: Local Draft & Export -->
+            <div id="tabDraft" class="tab-content">
+                <p>ब्राउज़र के लोकल स्टोरेज (localStorage) में अपना कार्य सुरक्षित रखें और कभी भी .patch या .txt फ़ाइल निर्यात करें।</p>
+                <div class="btn-group" style="margin-top:0.75rem;">
+                    <button class="btn btn-outline" onclick="saveLocalDraft()">💾 ड्राफ्ट सुरक्षित करें</button>
+                    <button class="btn btn-outline" onclick="restoreLocalDraft()">📂 ड्राफ्ट लोड करें</button>
+                    <button class="btn btn-outline" onclick="downloadPatch()">📄 .patch फ़ाइल डाउनलोड करें</button>
+                    <button class="btn btn-outline" onclick="downloadTxt()">📝 .txt विकिटेक्स्ट डाउनलोड करें</button>
+                </div>
+                <div id="draftStatusResult" class="helper-card" style="display:none; margin-top:0.75rem;"></div>
             </div>
         </div>
 
@@ -510,7 +710,7 @@
                 <div class="zero-autosave-icon">⚠️</div>
                 <div>
                     <h3 style="font-size:1.05rem; margin-bottom:0.25rem;">ज़ीरो ऑटो-सेव नीति (Zero Auto-Save Policy)</h3>
-                    <p style="font-size:0.9rem; color:var(--text-muted);">
+                    <p style="font-size:0.92rem; color:var(--text-muted);">
                         विकिपीडिया पर कोई भी संपादन स्वतः या बिना आपकी पुष्टि के कभी नहीं भेजा जाएगा।
                         कृपया प्रस्तावित परिवर्तनों की समीक्षा करें और पुष्टि करें।
                     </p>
@@ -531,10 +731,13 @@
 
             <div class="btn-group">
                 <button class="btn btn-outline" onclick="copyModifiedWikitext()">
-                    📋 Wikitext कॉपी करें
+                    📋 सुधारा गया Wikitext कॉपी करें
                 </button>
                 <button class="btn btn-outline" onclick="downloadPatch()">
                     💾 पैच डाउनलोड करें (.patch)
+                </button>
+                <button class="btn btn-outline" onclick="downloadTxt()">
+                    📄 टेक्स्ट डाउनलोड करें (.txt)
                 </button>
                 <button class="btn btn-outline" onclick="triggerDryRun()">
                     👁️ पूर्वावलोकन (Dry-Run)
@@ -547,28 +750,268 @@
         </div>
     </div>
 
+    <!-- Mode Configuration Modal -->
+    <div id="modeModal" class="modal-overlay" onclick="if(event.target===this) closeModeModal()">
+        <div class="modal-card">
+            <h3 style="font-size:1.25rem; margin-bottom:1rem; border-bottom:1px solid var(--border-light); padding-bottom:0.5rem;">
+                ⚙️ आर्किटेक्चर मोड व सेटिंग्स
+            </h3>
+            <p style="font-size:0.92rem; color:var(--text-muted); margin-bottom:1rem;">
+                यह उपकरण दोहरे मोड (Dual-Mode) में कार्य कर सकता है:
+            </p>
+            <div class="form-group">
+                <label style="cursor:pointer; display:flex; align-items:flex-start; gap:0.6rem;">
+                    <input type="radio" name="appModeRadio" id="radioClient" value="client" style="margin-top:0.3rem;" />
+                    <div>
+                        <strong>मोड: क्लाइंट-साइड (GitHub Pages)</strong>
+                        <div style="font-size:0.85rem; color:var(--text-muted);">
+                            ब्राउज़र में पूर्ण स्वायत्त पार्सर, Citoid REST CORS, व 8 सहायक मॉड्यूल का प्रयोग करता है। किसी बैकएंड सर्वर की आवश्यकता नहीं है।
+                        </div>
+                    </div>
+                </label>
+            </div>
+            <div class="form-group">
+                <label style="cursor:pointer; display:flex; align-items:flex-start; gap:0.6rem;">
+                    <input type="radio" name="appModeRadio" id="radioBackend" value="backend" style="margin-top:0.3rem;" />
+                    <div>
+                        <strong>मोड: बैकएंड API (FastAPI / Toolforge)</strong>
+                        <div style="font-size:0.85rem; color:var(--text-muted);">
+                            स्थानीय या टूलफोर्ज FastAPI बैकएंड सर्वर (`/api/*`) का उपयोग करता है।
+                        </div>
+                    </div>
+                </label>
+            </div>
+            <div class="form-group" id="customApiGroup">
+                <label for="customApiInput">कस्टम बैकएंड API बेस URL (वैकल्पिक):</label>
+                <input type="text" id="customApiInput" placeholder="उदा. https://tools.wmflabs.org/wiki-ref-fixer या http://localhost:8000" />
+            </div>
+            <div class="btn-group" style="justify-content:flex-end;">
+                <button class="btn btn-outline" onclick="closeModeModal()">रद्द करें</button>
+                <button class="btn btn-primary" onclick="saveModeSettings()">लागू करें (Save)</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Zero Auto-Save Publication Guide Modal -->
+    <div id="publishGuideModal" class="modal-overlay" onclick="if(event.target===this) closePublishGuideModal()">
+        <div class="modal-card">
+            <h3 style="font-size:1.25rem; margin-bottom:1rem; border-bottom:1px solid var(--border-light); padding-bottom:0.5rem; color:var(--primary);">
+                🎉 विकिपीडिया पर सहेजने के निर्देश (Zero Auto-Save)
+            </h3>
+            <p style="font-size:0.92rem; margin-bottom:1rem;">
+                ज़ीरो ऑटो-सेव सुरक्षा नीति के तहत सुधारे गए विकिटेक्स्ट को विकिपीडिया पर सुरक्षित प्रकाशित करने हेतु कृपया ये सरल चरण अपनाएँ:
+            </p>
+            <ol style="margin-left:1.5rem; font-size:0.92rem; margin-bottom:1.25rem;">
+                <li style="margin-bottom:0.5rem;">सुधारा गया विकिटेक्स्ट आपके क्लिपबोर्ड पर स्वतः कॉपी कर लिया गया है।</li>
+                <li style="margin-bottom:0.5rem;">नीचे दिए गए बटन पर क्लिक करके विकिपीडिया संपादन पृष्ठ सीधे खोलें।</li>
+                <li style="margin-bottom:0.5rem;">संपादन बॉक्स में नया विकिटेक्स्ट पेस्ट करें।</li>
+                <li style="margin-bottom:0.5rem;">संपादन सारांश बॉक्स में निम्नलिखित सारांश दर्ज करें:
+                    <div style="background:var(--bg); padding:0.4rem 0.6rem; border-radius:4px; font-family:monospace; margin-top:0.25rem;" id="guideModalSummary"></div>
+                </li>
+                <li>विकिपीडिया पर "बदलाव सहेजें" पर क्लिक करें।</li>
+            </ol>
+            <div class="btn-group" style="justify-content:space-between;">
+                <button class="btn btn-outline" onclick="closePublishGuideModal()">बंद करें</button>
+                <a id="wikiEditPageLink" href="#" target="_blank" class="btn btn-success">
+                    🔗 विकिपीडिया संपादन पृष्ठ खोलें (Open Edit Page)
+                </a>
+            </div>
+        </div>
+    </div>
+
     <footer>
-        <p>विकिपीडिया सन्दर्भ सुधार उपकरण • निर्मित: विक्रम प्रताप • लाइसेन्स: MIT • Wikimedia Toolforge Ready</p>
+        <p>विकिपीडिया सन्दर्भ सुधार उपकरण • निर्माता: विक्रम प्रताप • 100% हिन्दी Devanagari इंटरफ़ेस • Wikimedia Toolforge & GitHub Pages Ready</p>
     </footer>
 
     <script>
-        let currentModifications = [];
+        /**
+         * State and Mode Management
+         */
+        let currentMode = "client"; // "client" | "backend"
+        let customApiBase = "";
         let originalWikitext = "";
+        let currentModifications = [];
 
-        function openTab(tabId) {
+        // Known Unreliable / Social Media Domains for Helper 7 (Domain Advisory)
+        const UNRELIABLE_DOMAINS = [
+            { pattern: /(?:^|\.)twitter\.com$/i, name: "Twitter / X", reason: "सोशल मीडिया स्रोत (WP:RSP)" },
+            { pattern: /(?:^|\.)x\.com$/i, name: "X (Twitter)", reason: "सोशल मीडिया स्रोत (WP:RSP)" },
+            { pattern: /(?:^|\.)facebook\.com$/i, name: "Facebook", reason: "उपयोगकर्ता-जनित सामग्री (WP:RSP/SPS)" },
+            { pattern: /(?:^|\.)instagram\.com$/i, name: "Instagram", reason: "सोशल मीडिया स्रोत (WP:RSP)" },
+            { pattern: /(?:^|\.)tiktok\.com$/i, name: "TikTok", reason: "उपयोगकर्ता-जनित मीडिया (WP:RSP)" },
+            { pattern: /(?:^|\.)youtube\.com$/i, name: "YouTube", reason: "उपयोगकर्ता-जनित वीडियो (जब तक आधिकारिक न हो) (WP:RSP)" },
+            { pattern: /(?:^|\.)quora\.com$/i, name: "Quora", reason: "उपयोगकर्ता-जनित प्रश्नोत्तर (WP:RSP/SPS)" },
+            { pattern: /(?:^|\.)reddit\.com$/i, name: "Reddit", reason: "फोरम व उपयोगकर्ता-जनित सामग्री (WP:RSP)" },
+            { pattern: /(?:^|\.)blogspot\.com$/i, name: "Blogspot", reason: "व्यक्तिगत ब्लॉग (WP:SPS)" },
+            { pattern: /(?:^|\.)wordpress\.com$/i, name: "WordPress", reason: "व्यक्तिगत ब्लॉग (WP:SPS)" },
+            { pattern: /(?:^|\.)medium\.com$/i, name: "Medium", reason: "ओपन पब्लिशिंग प्लेटफॉर्म (WP:RSP)" },
+            { pattern: /(?:^|\.)dailymail\.co\.uk$/i, name: "Daily Mail", reason: "गैर-विश्वसनीय समाचार स्रोत (WP:RSP/DM)" },
+            { pattern: /(?:^|\.)thesun\.co\.uk$/i, name: "The Sun", reason: "टैब्लॉयड समाचार स्रोत (WP:RSP)" }
+        ];
+
+        // Initialize mode detection on page load
+        (async function initApp() {
+            const savedMode = localStorage.getItem("wiki_ref_fixer_mode");
+            const savedApi = localStorage.getItem("wiki_ref_fixer_api_base") || "";
+            customApiBase = savedApi;
+
+            const isStaticHost = window.location.hostname.endsWith("github.io") || window.location.protocol === "file:";
+
+            if (savedMode === "client" || savedMode === "backend") {
+                currentMode = savedMode;
+            } else if (isStaticHost) {
+                currentMode = "client";
+            } else {
+                // Probe /api/health
+                try {
+                    const controller = new AbortController();
+                    const timeoutId = setTimeout(() => controller.abort(), 1200);
+                    const res = await fetch("/api/health", { signal: controller.signal });
+                    clearTimeout(timeoutId);
+                    if (res.ok) {
+                        currentMode = "backend";
+                    } else {
+                        currentMode = "client";
+                    }
+                } catch (e) {
+                    currentMode = "client";
+                }
+            }
+            updateModeUI();
+        })();
+
+        function updateModeUI() {
+            const badge = document.getElementById("modeBadge");
+            const banner = document.getElementById("modeBanner");
+
+            if (currentMode === "backend") {
+                badge.className = "mode-pill backend-api";
+                badge.innerHTML = "⚡ मोड: बैकएंड API (FastAPI)";
+                banner.className = "alert-banner info";
+                banner.innerHTML = "<span>⚡ <strong>सक्रिय मोड:</strong> बैकएंड API (FastAPI / Toolforge)। सभी पार्सिंग व विश्लेषण बैकएंड सर्वर द्वारा प्रोसेस हो रहे हैं।</span>";
+            } else {
+                badge.className = "mode-pill client-side";
+                badge.innerHTML = "🌐 मोड: क्लाइंट-साइड (GitHub Pages)";
+                banner.className = "alert-banner success";
+                banner.innerHTML = "<span>🌐 <strong>सक्रिय मोड:</strong> क्लाइंट-साइड (GitHub Pages)। सभी पार्सिंग, Citoid उद्धरण व 8 सहायक मॉड्यूल सीधे आपके ब्राउज़र में सक्रिय हैं।</span>";
+            }
+        }
+
+        function openModeModal() {
+            if (currentMode === "client") {
+                document.getElementById("radioClient").checked = true;
+            } else {
+                document.getElementById("radioBackend").checked = true;
+            }
+            document.getElementById("customApiInput").value = customApiBase;
+            document.getElementById("modeModal").classList.add("active");
+        }
+
+        function closeModeModal() {
+            document.getElementById("modeModal").classList.remove("active");
+        }
+
+        function saveModeSettings() {
+            const selected = document.querySelector('input[name="appModeRadio"]:checked').value;
+            currentMode = selected;
+            customApiBase = document.getElementById("customApiInput").value.trim();
+            localStorage.setItem("wiki_ref_fixer_mode", currentMode);
+            localStorage.setItem("wiki_ref_fixer_api_base", customApiBase);
+            updateModeUI();
+            closeModeModal();
+        }
+
+        function getApiUrl(endpoint) {
+            if (customApiBase) {
+                return customApiBase.replace(/\/+$/, "") + endpoint;
+            }
+            return endpoint;
+        }
+
+        function openTab(evt, tabId) {
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
             document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-            event.target.classList.add('active');
-            document.getElementById(tabId).classList.add('active');
+            if (evt && evt.target) {
+                evt.target.classList.add('active');
+            }
+            const targetContent = document.getElementById(tabId);
+            if (targetContent) {
+                targetContent.classList.add('active');
+            }
+        }
+
+        /**
+         * Article Fetching (Action API with CORS origin=*)
+         */
+        async function fetchArticle() {
+            const titleInput = document.getElementById("articleTitle");
+            const title = titleInput.value.trim();
+            if (!title) {
+                alert("कृपया पहले लेख का शीर्षक दर्ज करें!");
+                titleInput.focus();
+                return;
+            }
+
+            const fetchBtn = event && event.target ? event.target : null;
+            if (fetchBtn) {
+                fetchBtn.disabled = true;
+                fetchBtn.innerText = "⏳ फेच हो रहा है...";
+            }
+
+            try {
+                // Method 1: parse endpoint
+                const parseUrl = `https://hi.wikipedia.org/w/api.php?action=parse&prop=wikitext&page=${encodeURIComponent(title)}&format=json&origin=*`;
+                const resp = await fetch(parseUrl);
+                const data = await resp.json();
+
+                if (data && data.parse && data.parse.wikitext && data.parse.wikitext["*"]) {
+                    document.getElementById("wikitextInput").value = data.parse.wikitext["*"];
+                    if (data.parse.title) {
+                        titleInput.value = data.parse.title;
+                    }
+                    alert(`लेख "${titleInput.value}" का विकिटेक्स्ट सफलतापूर्वक लोड कर लिया गया!`);
+                    return;
+                }
+
+                // Method 2: query revisions endpoint fallback
+                const revUrl = `https://hi.wikipedia.org/w/api.php?action=query&prop=revisions&titles=${encodeURIComponent(title)}&rvslots=*&rvprop=content&format=json&origin=*`;
+                const revResp = await fetch(revUrl);
+                const revData = await revResp.json();
+
+                if (revData && revData.query && revData.query.pages) {
+                    const pages = revData.query.pages;
+                    const pageId = Object.keys(pages)[0];
+                    if (pageId && pageId !== "-1") {
+                        const page = pages[pageId];
+                        const wikitext = page.revisions && page.revisions[0] && (page.revisions[0].slots ? page.revisions[0].slots.main["*"] : page.revisions[0]["*"]);
+                        if (wikitext) {
+                            document.getElementById("wikitextInput").value = wikitext;
+                            titleInput.value = page.title || title;
+                            alert(`लेख "${titleInput.value}" का विकिटेक्स्ट सफलतापूर्वक लोड कर लिया गया!`);
+                            return;
+                        }
+                    }
+                }
+
+                throw new Error("विकिपीडिया पर यह पृष्ठ नहीं मिला अथवा विकिटेक्स्ट रिक्त है।");
+            } catch (err) {
+                alert("लेख फेच करने में त्रुटि: " + err.message);
+            } finally {
+                if (fetchBtn) {
+                    fetchBtn.disabled = false;
+                    fetchBtn.innerText = "📥 लेख फेच करें (Fetch Article)";
+                }
+            }
         }
 
         function loadSampleText() {
-            const sample = `== इतिहास ==
-चंद्रयान-3 मिशन सफल रहा था।<ref>https://www.isro.gov.in/chandrayaan3.html</ref>
-यह भारत का तीसरा चंद्र मिशन था।<ref>[https://timesofindia.indiatimes.com/india/chandrayaan-3-landing मिशन विवरण]</ref>
-समान स्रोत दोबारा उद्धृत किया गया।<ref>https://www.isro.gov.in/chandrayaan3.html</ref>
-अविश्वसनीय सोशल मीडिया स्रोत।<ref>https://twitter.com/user/status/123456</ref>
-पुस्तक सन्दर्भ।<ref>{{Cite book |title=अंतरिक्ष विज्ञान |isbn=978-0-306-40615-7 |date=२०२३-०८-२३}}</ref>
+            const sample = `== परिचय ==
+चंद्रयान-3 भारतीय अंतरिक्ष अनुसंधान संगठन (इसरो) का तीसरा चंद्र मिशन है।<ref>https://www.isro.gov.in/chandrayaan3.html</ref>
+इस मिशन का लैंडर 'विक्रम' चंद्रमा के दक्षिणी ध्रुव पर उतरा।<ref>[https://timesofindia.indiatimes.com/india/chandrayaan-3-landing मिशन विवरण टाइम्स ऑफ इंडिया]</ref>
+इसरो की आधिकारिक पुष्टि।<ref>https://www.isro.gov.in/chandrayaan3.html</ref>
+सोशल मीडिया पर प्रतिक्रिया।<ref>https://twitter.com/isro/status/1694318029519577265</ref>
+संदर्भ ग्रंथ।<ref>{{Cite book |title=अंतरिक्ष विज्ञान |isbn=978-0-306-40615-7 |date=२३ अगस्त २०२३ |deadurl=yes}}</ref>
+खराब साँचा सिंटैक्स।<ref>{{Cite web |url=https://example.org |title=परीक्षण वेब ||author=वैज्ञानिक |}}</ref>
 
 == सन्दर्भ ==
 {{सन्दर्भ सूची}}`;
@@ -585,40 +1028,381 @@
             currentModifications = [];
         }
 
+        /**
+         * Pure In-Browser Client-Side Engine
+         */
+        const ClientEngine = {
+            sleep(ms) {
+                return new Promise(resolve => setTimeout(resolve, ms));
+            },
+
+            // Extract references from wikitext
+            extractReferences(wikitext) {
+                const refs = [];
+                // Match <ref ...>...</ref> or <ref .../>
+                const refRegex = /<ref\b([^>]*?)(?:\/(>)|>([\s\S]*?)<\/ref>)/gi;
+                let match;
+                while ((match = refRegex.exec(wikitext)) !== null) {
+                    const fullMatch = match[0];
+                    const attrs = match[1] || "";
+                    const isSelfClosing = Boolean(match[2]);
+                    const innerContent = isSelfClosing ? "" : (match[3] || "");
+                    const spanStart = match.index;
+                    const spanEnd = spanStart + fullMatch.length;
+
+                    // Parse name and group
+                    const nameMatch = attrs.match(/name\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s\/>]+))/i);
+                    const name = nameMatch ? (nameMatch[1] || nameMatch[2] || nameMatch[3] || "").trim() : null;
+
+                    const groupMatch = attrs.match(/group\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s\/>]+))/i);
+                    const group = groupMatch ? (groupMatch[1] || groupMatch[2] || groupMatch[3] || "").trim() : null;
+
+                    refs.push({
+                        fullMatch,
+                        attrs,
+                        name,
+                        group,
+                        innerContent,
+                        isSelfClosing,
+                        spanStart,
+                        spanEnd
+                    });
+                }
+                return refs;
+            },
+
+            // In-browser Citoid Query with Zotero -> CS1 translation
+            async fetchCitoidMetadata(url) {
+                const endpoints = [
+                    `https://hi.wikipedia.org/api/rest_v1/data/citation/mediawiki/${encodeURIComponent(url)}`,
+                    `https://en.wikipedia.org/api/rest_v1/data/citation/mediawiki/${encodeURIComponent(url)}`
+                ];
+
+                for (const ep of endpoints) {
+                    try {
+                        const res = await fetch(ep, {
+                            headers: { "Accept": "application/json" }
+                        });
+                        if (res.ok) {
+                            const data = await res.json();
+                            if (Array.isArray(data) && data.length > 0) {
+                                return data[0];
+                            }
+                        }
+                    } catch (e) {
+                        // ignore and try next
+                    }
+                }
+                return null;
+            },
+
+            formatDateToday() {
+                const d = new Date();
+                const yyyy = d.getFullYear();
+                const mm = String(d.getMonth() + 1).padStart(2, '0');
+                const dd = String(d.getDate()).padStart(2, '0');
+                return `${yyyy}-${mm}-${dd}`;
+            },
+
+            // Build CS1 Template from Citoid Metadata or Fallback
+            buildCitationTemplate(url, citoidData, fallbackTitle = "") {
+                const accessDate = this.formatDateToday();
+                if (!citoidData) {
+                    let domain = "";
+                    try {
+                        domain = new URL(url).hostname.replace(/^www\./i, "");
+                    } catch (e) {
+                        domain = "वेबसाइट";
+                    }
+                    const title = fallbackTitle || `${domain} वेब सन्दर्भ`;
+                    return `{{Cite web |url=${url} |title=${title} |access-date=${accessDate}}}`;
+                }
+
+                const itemType = citoidData.itemType || "webpage";
+                const title = citoidData.title || fallbackTitle || "वेब सन्दर्भ";
+                const date = citoidData.date || "";
+                const authors = citoidData.author || citoidData.creators || [];
+                let authorStr = "";
+                if (Array.isArray(authors) && authors.length > 0) {
+                    const first = authors[0];
+                    if (typeof first === "string") {
+                        authorStr = first;
+                    } else if (first.lastName && first.firstName) {
+                        authorStr = `${first.firstName} ${first.lastName}`;
+                    } else if (first.name) {
+                        authorStr = first.name;
+                    }
+                }
+
+                if (itemType === "book") {
+                    let t = `{{Cite book |title=${title}`;
+                    if (authorStr) t += ` |author=${authorStr}`;
+                    if (date) t += ` |date=${date}`;
+                    if (citoidData.publisher) t += ` |publisher=${citoidData.publisher}`;
+                    if (citoidData.ISBN) t += ` |isbn=${citoidData.ISBN}`;
+                    if (url) t += ` |url=${url}`;
+                    t += `}}`;
+                    return t;
+                } else if (itemType === "journalArticle") {
+                    let t = `{{Cite journal |title=${title}`;
+                    if (authorStr) t += ` |author=${authorStr}`;
+                    if (citoidData.publicationTitle) t += ` |journal=${citoidData.publicationTitle}`;
+                    if (date) t += ` |date=${date}`;
+                    if (citoidData.volume) t += ` |volume=${citoidData.volume}`;
+                    if (citoidData.issue) t += ` |issue=${citoidData.issue}`;
+                    if (citoidData.pages) t += ` |pages=${citoidData.pages}`;
+                    if (citoidData.DOI) t += ` |doi=${citoidData.DOI}`;
+                    if (url) t += ` |url=${url}`;
+                    t += `}}`;
+                    return t;
+                } else if (itemType === "newspaperArticle" || itemType === "magazineArticle") {
+                    let t = `{{Cite news |url=${url} |title=${title}`;
+                    if (authorStr) t += ` |author=${authorStr}`;
+                    if (citoidData.publicationTitle) t += ` |newspaper=${citoidData.publicationTitle}`;
+                    if (date) t += ` |date=${date}`;
+                    t += ` |access-date=${accessDate}}}`;
+                    return t;
+                } else {
+                    let t = `{{Cite web |url=${url} |title=${title}`;
+                    if (authorStr) t += ` |author=${authorStr}`;
+                    if (citoidData.websiteTitle || citoidData.publisher) {
+                        t += ` |website=${citoidData.websiteTitle || citoidData.publisher}`;
+                    }
+                    if (date) t += ` |date=${date}`;
+                    t += ` |access-date=${accessDate}}}`;
+                    return t;
+                }
+            },
+
+            // Full client-side analyze and propose
+            async analyzeWikitext(wikitext) {
+                const refs = this.extractReferences(wikitext);
+                const modifications = [];
+                let modCounter = 1;
+                let bareUrlCount = 0;
+                let syntaxErrorCount = 0;
+
+                // 1. Bare URL detection inside refs
+                for (const ref of refs) {
+                    if (ref.isSelfClosing) continue;
+
+                    const trimmed = ref.innerContent.trim();
+
+                    // Case A: Pure URL inside ref: <ref>https://example.com</ref>
+                    const pureUrlMatch = trimmed.match(/^https?:\/\/[^\s<>"'\]]+$/i);
+                    // Case B: Bracketed bare URL: <ref>[https://example.com शीर्षक]</ref> or <ref>[https://example.com]</ref>
+                    const bracketMatch = trimmed.match(/^\[(https?:\/\/[^\s<>"'\]]+)(?:\s+([^\]]+))?\]$/i);
+
+                    if (pureUrlMatch) {
+                        bareUrlCount++;
+                        const url = pureUrlMatch[0];
+                        await this.sleep(400); // polite queue pacing
+                        const citoid = await this.fetchCitoidMetadata(url);
+                        const template = this.buildCitationTemplate(url, citoid);
+
+                        const nameAttr = ref.name ? ` name="${ref.name}"` : "";
+                        const groupAttr = ref.group ? ` group="${ref.group}"` : "";
+                        const replacement = `<ref${nameAttr}${groupAttr}>${template}</ref>`;
+
+                        modifications.push({
+                            id: `mod_${modCounter++}`,
+                            type: "नग्न URL सुधार",
+                            description: `नग्न URL (${url}) को मानक उद्धरण साँचे में परिवर्तित किया गया`,
+                            span_start: ref.spanStart,
+                            span_end: ref.spanEnd,
+                            original_snippet: ref.fullMatch,
+                            proposed_snippet: replacement,
+                            replacement: replacement
+                        });
+                    } else if (bracketMatch) {
+                        bareUrlCount++;
+                        const url = bracketMatch[1];
+                        const fallbackTitle = (bracketMatch[2] || "").trim();
+                        await this.sleep(400);
+                        const citoid = await this.fetchCitoidMetadata(url);
+                        const template = this.buildCitationTemplate(url, citoid, fallbackTitle);
+
+                        const nameAttr = ref.name ? ` name="${ref.name}"` : "";
+                        const groupAttr = ref.group ? ` group="${ref.group}"` : "";
+                        const replacement = `<ref${nameAttr}${groupAttr}>${template}</ref>`;
+
+                        modifications.push({
+                            id: `mod_${modCounter++}`,
+                            type: "नग्न URL सुधार",
+                            description: `ब्रैकेट युक्त URL (${url}) को मानक उद्धरण साँचे में बदला गया`,
+                            span_start: ref.spanStart,
+                            span_end: ref.spanEnd,
+                            original_snippet: ref.fullMatch,
+                            proposed_snippet: replacement,
+                            replacement: replacement
+                        });
+                    } else {
+                        // Check for syntax repair & deadurl modernization inside existing templates
+                        let updatedInner = ref.innerContent;
+                        let changed = false;
+
+                        // Modernize deadurl to url-status
+                        if (/\|\s*deadurl\s*=\s*(?:yes|true|1)/i.test(updatedInner)) {
+                            updatedInner = updatedInner.replace(/\|\s*deadurl\s*=\s*(?:yes|true|1)/gi, "|url-status=dead");
+                            changed = true;
+                        } else if (/\|\s*deadurl\s*=\s*(?:no|false|0)/i.test(updatedInner)) {
+                            updatedInner = updatedInner.replace(/\|\s*deadurl\s*=\s*(?:no|false|0)/gi, "|url-status=live");
+                            changed = true;
+                        }
+
+                        // Repair stray double pipes
+                        if (/\|\|(?!\s*}})/.test(updatedInner)) {
+                            updatedInner = updatedInner.replace(/\|\|/g, "|");
+                            changed = true;
+                            syntaxErrorCount++;
+                        }
+                        // Repair trailing pipe before }}
+                        if (/\|\s*}}/.test(updatedInner)) {
+                            updatedInner = updatedInner.replace(/\|\s*}}/g, "}}");
+                            changed = true;
+                            syntaxErrorCount++;
+                        }
+
+                        if (changed) {
+                            const nameAttr = ref.name ? ` name="${ref.name}"` : "";
+                            const groupAttr = ref.group ? ` group="${ref.group}"` : "";
+                            const replacement = `<ref${nameAttr}${groupAttr}>${updatedInner}</ref>`;
+
+                            modifications.push({
+                                id: `mod_${modCounter++}`,
+                                type: "सिंटैक्स व CS1 आधुनिकीकरण",
+                                description: "खराब पाइप सिंटैक्स की मरम्मत व deadurl पैरामीटर को url-status में अद्यतन किया गया",
+                                span_start: ref.spanStart,
+                                span_end: ref.spanEnd,
+                                original_snippet: ref.fullMatch,
+                                proposed_snippet: replacement,
+                                replacement: replacement
+                            });
+                        }
+                    }
+                }
+
+                // Check for missing {{सन्दर्भ सूची}}
+                const hasRefList = /\{\{\s*(?:सन्दर्भ\s*सूची|reflist|संदर्भ\s*सूची|references)\b/i.test(wikitext) || /<references\s*\/?>/i.test(wikitext);
+                if (refs.length > 0 && !hasRefList) {
+                    syntaxErrorCount++;
+                }
+
+                // Calculate Health Score (0-100)
+                let score = 100;
+                score -= (bareUrlCount * 12);
+                score -= (syntaxErrorCount * 10);
+                if (refs.length > 0 && !hasRefList) score -= 20;
+                if (score < 0) score = 0;
+                if (score > 100) score = 100;
+
+                return {
+                    health_score: score,
+                    total_refs: refs.length,
+                    bare_urls: bareUrlCount,
+                    syntax_errors: syntaxErrorCount,
+                    has_reflist: hasRefList,
+                    modifications: modifications
+                };
+            },
+
+            // Descending span order reconstruction to prevent text drift
+            applyGranularModifications(originalText, selectedMods) {
+                // Sort descending by span_start
+                const sorted = [...selectedMods].sort((a, b) => b.span_start - a.span_start);
+                let result = originalText;
+                for (const mod of sorted) {
+                    result = result.slice(0, mod.span_start) + mod.replacement + result.slice(mod.span_end);
+                }
+                return result;
+            },
+
+            // Generate simple unified diff client-side
+            generateUnifiedDiff(orig, modded, filename = "article.wiki") {
+                const origLines = orig.split("\n");
+                const modLines = modded.split("\n");
+                let diff = `--- a/${filename}\n+++ b/${filename}\n@@ -1,${origLines.length} +1,${modLines.length} @@\n`;
+
+                const max = Math.max(origLines.length, modLines.length);
+                for (let i = 0; i < max; i++) {
+                    const o = origLines[i];
+                    const m = modLines[i];
+                    if (o === m) {
+                        diff += ` ${o || ""}\n`;
+                    } else {
+                        if (o !== undefined) diff += `-${o}\n`;
+                        if (m !== undefined) diff += `+${m}\n`;
+                    }
+                }
+                return diff;
+            },
+
+            // Generate Dynamic Hindi Edit Summary
+            generateEditSummary(selectedMods) {
+                if (!selectedMods || selectedMods.length === 0) {
+                    return "कोई परिवर्तन चयनित नहीं ([[WP:REF|सन्दर्भ सुधार उपकरण]])";
+                }
+                const types = new Set(selectedMods.map(m => m.type));
+                const parts = [];
+                if (types.has("नग्न URL सुधार")) parts.push("नग्न URL को मानक साँचों में बदला");
+                if (types.has("सिंटैक्स व CS1 आधुनिकीकरण")) parts.push("खराब साँचों की मरम्मत व CS1 आधुनिकीकरण");
+                if (types.has("डुप्लिकेट विलय")) parts.push("डुप्लिकेट संदर्भों का विलय");
+
+                if (parts.length === 0) {
+                    parts.push("सन्दर्भ सुधार व मानकीकरण");
+                }
+                return `${parts.join(" | ")} ([[WP:REF|सन्दर्भ सुधार उपकरण]])`;
+            }
+        };
+
+        /**
+         * Main Workflow: Scan Wikitext
+         */
         async function scanWikitext() {
             const wikitext = document.getElementById('wikitextInput').value.trim();
             if (!wikitext) {
                 alert("कृपया पहले Wikitext दर्ज करें!");
+                document.getElementById('wikitextInput').focus();
                 return;
             }
             originalWikitext = wikitext;
 
+            const scanBtn = event && event.target ? event.target : null;
+            if (scanBtn) {
+                scanBtn.disabled = true;
+                scanBtn.innerText = "⏳ विश्लेषण हो रहा है...";
+            }
+
             try {
-                const resp = await fetch("/api/scan", {
-                    method: "POST",
-                    headers: {"Content-Type": "application/json"},
-                    body: JSON.stringify({wikitext: wikitext, title: document.getElementById('articleTitle').value})
-                });
-                const data = await resp.json();
+                let data = null;
+
+                if (currentMode === "backend") {
+                    try {
+                        const resp = await fetch(getApiUrl("/api/scan"), {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({
+                                wikitext: wikitext,
+                                title: document.getElementById('articleTitle').value
+                            })
+                        });
+                        if (resp.ok) {
+                            data = await resp.json();
+                        } else {
+                            throw new Error(`सर्वर स्थिति: ${resp.status}`);
+                        }
+                    } catch (backendErr) {
+                        console.warn("Backend API call failed, falling back to client-side engine:", backendErr);
+                        currentMode = "client";
+                        updateModeUI();
+                        data = await ClientEngine.analyzeWikitext(wikitext);
+                    }
+                } else {
+                    data = await ClientEngine.analyzeWikitext(wikitext);
+                }
 
                 // Render Scorecard
-                document.getElementById('scorecardCard').style.display = "block";
-                document.getElementById('healthScoreNum').innerText = data.health_score || 100;
-                document.getElementById('totalRefsNum').innerText = data.total_refs || 0;
-                document.getElementById('bareUrlsNum').innerText = data.bare_urls || 0;
-                document.getElementById('proposedFixesNum').innerText = data.modifications.length || 0;
-
-                const badge = document.getElementById('healthScoreBadge');
-                if (data.health_score >= 80) {
-                    badge.className = "badge badge-success";
-                    badge.innerText = "उत्कृष्ट (Grade A)";
-                } else if (data.health_score >= 50) {
-                    badge.className = "badge badge-warning";
-                    badge.innerText = "मध्यम (Grade B)";
-                } else {
-                    badge.className = "badge badge-danger";
-                    badge.innerText = "सुधार आवश्यक (Grade C)";
-                }
+                renderScorecard(data);
 
                 // Render Diff List
                 currentModifications = data.modifications || [];
@@ -629,12 +1413,63 @@
                 updateDiffSummary();
             } catch (err) {
                 alert("स्कैन में त्रुटि: " + err.message);
+            } finally {
+                if (scanBtn) {
+                    scanBtn.disabled = false;
+                    scanBtn.innerText = "🔍 सन्दर्भ स्कैन करें (Analyze & Propose)";
+                }
             }
+        }
+
+        function renderScorecard(data) {
+            document.getElementById('scorecardCard').style.display = "block";
+            const score = data.health_score !== undefined ? data.health_score : 100;
+            document.getElementById('healthScoreNum').innerText = score;
+            document.getElementById('totalRefsNum').innerText = data.total_refs || 0;
+            document.getElementById('bareUrlsNum').innerText = data.bare_urls || 0;
+            document.getElementById('proposedFixesNum').innerText = (data.modifications || []).length;
+            document.getElementById('syntaxErrorsNum').innerText = data.syntax_errors || 0;
+
+            const badge = document.getElementById('healthScoreBadge');
+            const recContainer = document.getElementById('scorecardRecommendations');
+            let recs = [];
+
+            if (score >= 80) {
+                badge.className = "badge badge-success";
+                badge.innerText = "उत्कृष्ट (Grade A)";
+                recs.push("✓ लेख के सन्दर्भ उत्कृष्ट स्थिति में हैं।");
+            } else if (score >= 65) {
+                badge.className = "badge badge-info";
+                badge.innerText = "संतोषजनक (Grade B)";
+                recs.push("ℹ️ कुछ नग्न URLs या पुराने प्रारूप उपस्थित हैं जिन्हें सुधारा जा सकता है।");
+            } else if (score >= 50) {
+                badge.className = "badge badge-warning";
+                badge.innerText = "मध्यम (Grade C)";
+                recs.push("⚠️ लेख में एकाधिक नग्न URLs या सिंटैक्स त्रुटियाँ हैं।");
+            } else {
+                badge.className = "badge badge-danger";
+                badge.innerText = "सुधार आवश्यक (Grade D)";
+                recs.push("🚨 गंभीर सन्दर्भ त्रुटियाँ: नग्न URLs व सिंटैक्स की तुरंत मरम्मत अपेक्षित है।");
+            }
+
+            if (data.bare_urls > 0) {
+                recs.push(`• ${data.bare_urls} नग्न URLs पाए गए हैं जिन्हें मानक CS1 साँचों में बदलना प्रस्तावित है।`);
+            }
+            if (data.has_reflist === false) {
+                recs.push(`• लेख में सन्दर्भ मौजूद हैं किन्तु {{सन्दर्भ सूची}} कंटेनर नहीं मिला।`);
+            }
+
+            recContainer.innerHTML = `<strong>सिफारिशें व स्थिति:</strong><br/>` + recs.join("<br/>");
         }
 
         function renderDiffItems(mods) {
             const container = document.getElementById('diffItemsList');
             container.innerHTML = "";
+
+            if (!mods || mods.length === 0) {
+                container.innerHTML = "<div class='alert-banner success'>🎉 कोई सुधार आवश्यक नहीं मिला! सभी सन्दर्भ मानक रूप में हैं।</div>";
+                return;
+            }
 
             mods.forEach((mod, idx) => {
                 const item = document.createElement('div');
@@ -643,17 +1478,17 @@
                     <div class="diff-header">
                         <label class="diff-checkbox-label">
                             <input type="checkbox" class="mod-checkbox" value="${mod.id}" checked onchange="updateDiffSummary()" />
-                            <span>सुधार #${idx + 1}: ${mod.description || 'सन्दर्भ सुधार'}</span>
+                            <span>सुधार #${idx + 1}: ${escapeHtml(mod.description || 'सन्दर्भ सुधार')}</span>
                         </label>
-                        <span class="badge badge-success">${mod.type}</span>
+                        <span class="badge badge-success">${escapeHtml(mod.type)}</span>
                     </div>
                     <div class="diff-columns">
                         <div>
-                            <div style="font-size:0.8rem; font-weight:600; margin-bottom:0.25rem; color:var(--danger);">मूल पाठ (Original):</div>
+                            <div style="font-size:0.85rem; font-weight:700; margin-bottom:0.25rem; color:var(--danger);">मूल पाठ (Original):</div>
                             <div class="diff-box diff-orig">${escapeHtml(mod.original_snippet)}</div>
                         </div>
                         <div>
-                            <div style="font-size:0.8rem; font-weight:600; margin-bottom:0.25rem; color:var(--success);">प्रस्तावित सुधार (Proposed):</div>
+                            <div style="font-size:0.85rem; font-weight:700; margin-bottom:0.25rem; color:var(--success);">प्रस्तावित सुधार (Proposed):</div>
                             <div class="diff-box diff-prop">${escapeHtml(mod.proposed_snippet)}</div>
                         </div>
                     </div>
@@ -666,21 +1501,30 @@
             const checkedIds = Array.from(document.querySelectorAll('.mod-checkbox:checked')).map(cb => cb.value);
             if (currentModifications.length === 0) return;
 
-            try {
-                const resp = await fetch("/api/diff", {
-                    method: "POST",
-                    headers: {"Content-Type": "application/json"},
-                    body: JSON.stringify({
-                        original_wikitext: originalWikitext,
-                        selected_ids: checkedIds,
-                        modifications: currentModifications
-                    })
-                });
-                const data = await resp.json();
-                document.getElementById('editSummaryInput').value = data.summary;
-            } catch (err) {
-                console.error("Diff summary error:", err);
+            const selectedMods = currentModifications.filter(m => checkedIds.includes(m.id));
+
+            if (currentMode === "backend") {
+                try {
+                    const resp = await fetch(getApiUrl("/api/diff"), {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                            original_wikitext: originalWikitext,
+                            selected_ids: checkedIds,
+                            modifications: currentModifications
+                        })
+                    });
+                    if (resp.ok) {
+                        const data = await resp.json();
+                        document.getElementById('editSummaryInput').value = data.summary;
+                        return;
+                    }
+                } catch (e) {
+                    // fallback to client summary
+                }
             }
+
+            document.getElementById('editSummaryInput').value = ClientEngine.generateEditSummary(selectedMods);
         }
 
         function toggleSelectAll(checked) {
@@ -693,59 +1537,70 @@
             document.getElementById('publishBtn').disabled = !confirmed;
         }
 
-        async function copyModifiedWikitext() {
+        function getReconstructedWikitext() {
             const checkedIds = Array.from(document.querySelectorAll('.mod-checkbox:checked')).map(cb => cb.value);
-            const resp = await fetch("/api/diff", {
-                method: "POST",
-                headers: {"Content-Type": "application/json"},
-                body: JSON.stringify({
-                    original_wikitext: originalWikitext,
-                    selected_ids: checkedIds,
-                    modifications: currentModifications
-                })
-            });
-            const data = await resp.json();
-            navigator.clipboard.writeText(data.reconstructed_wikitext);
-            alert("सुधारा गया Wikitext क्लिपबोर्ड पर कॉपी कर लिया गया!");
+            const selectedMods = currentModifications.filter(m => checkedIds.includes(m.id));
+            return ClientEngine.applyGranularModifications(originalWikitext, selectedMods);
+        }
+
+        async function copyModifiedWikitext() {
+            const reconstructed = getReconstructedWikitext();
+            await navigator.clipboard.writeText(reconstructed);
+            alert("✓ सुधारा गया Wikitext क्लिपबोर्ड पर कॉपी कर लिया गया!");
         }
 
         async function downloadPatch() {
-            const checkedIds = Array.from(document.querySelectorAll('.mod-checkbox:checked')).map(cb => cb.value);
-            const resp = await fetch("/api/diff", {
-                method: "POST",
-                headers: {"Content-Type": "application/json"},
-                body: JSON.stringify({
-                    original_wikitext: originalWikitext,
-                    selected_ids: checkedIds,
-                    modifications: currentModifications
-                })
-            });
-            const data = await resp.json();
-            const blob = new Blob([data.diff_patch], {type: "text/plain;charset=utf-8"});
+            const reconstructed = getReconstructedWikitext();
+            const patchText = ClientEngine.generateUnifiedDiff(originalWikitext, reconstructed);
+            const blob = new Blob([patchText], { type: "text/plain;charset=utf-8" });
             const a = document.createElement('a');
             a.href = URL.createObjectURL(blob);
             a.download = "article_references.patch";
             a.click();
         }
 
+        function downloadTxt() {
+            const reconstructed = getReconstructedWikitext();
+            const blob = new Blob([reconstructed], { type: "text/plain;charset=utf-8" });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = "modified_wikitext.txt";
+            a.click();
+        }
+
         async function triggerDryRun() {
             const title = document.getElementById('articleTitle').value || "परीक्षण लेख";
             const summary = document.getElementById('editSummaryInput').value;
-            const resp = await fetch("/api/save", {
-                method: "POST",
-                headers: {"Content-Type": "application/json"},
-                body: JSON.stringify({
-                    title: title,
-                    wikitext: originalWikitext,
-                    summary: summary,
-                    confirmed: true,
-                    dry_run: true
-                })
-            });
-            const data = await resp.json();
+
+            if (currentMode === "backend") {
+                try {
+                    const resp = await fetch(getApiUrl("/api/save"), {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                            title: title,
+                            wikitext: originalWikitext,
+                            summary: summary,
+                            confirmed: true,
+                            dry_run: true
+                        })
+                    });
+                    if (resp.ok) {
+                        document.getElementById('publishStatus').innerHTML = `
+                            <div class="alert-banner success" style="width:100%;">
+                                ✓ बैकएंड पूर्वावलोकन सफल! विकिपीडिया पर कोई संशोधन नहीं किया गया (Zero Auto-Save Verified).
+                            </div>
+                        `;
+                        return;
+                    }
+                } catch (e) {
+                    // fallback to client preview
+                }
+            }
+
             document.getElementById('publishStatus').innerHTML = `
-                <div class="badge badge-success" style="padding:0.75rem; width:100%; text-align:left;">
-                    ✓ पूर्वावलोकन सफल! विकिपीडिया पर कोई संशोधन नहीं किया गया (Zero Auto-Save Verified).
+                <div class="alert-banner success" style="width:100%;">
+                    ✓ पूर्वावलोकन सफल! विकिपीडिया पर कोई संशोधन नहीं भेजा गया (Zero Auto-Save Verified).
                 </div>
             `;
         }
@@ -753,125 +1608,506 @@
         async function publishToWikipedia() {
             const confirmed = document.getElementById('humanConfirmCheckbox').checked;
             if (!confirmed) {
-                alert("ज़ीरो ऑटो-सेव: कृपया पहले पुष्टि चेकबॉक्स पर टिक करें!");
+                alert("ज़ीरो ऑटो-सेव: कृपया पहले मानवीय पुष्टि चेकबॉक्स पर टिक करें!");
                 return;
             }
 
-            const title = document.getElementById('articleTitle').value || "परीक्षण लेख";
-            const summary = document.getElementById('editSummaryInput').value;
-            const resp = await fetch("/api/save", {
-                method: "POST",
-                headers: {"Content-Type": "application/json"},
-                body: JSON.stringify({
-                    title: title,
-                    wikitext: originalWikitext,
-                    summary: summary,
-                    confirmed: true,
-                    dry_run: false
-                })
-            });
-            const data = await resp.json();
-            document.getElementById('publishStatus').innerHTML = `
-                <div class="badge badge-success" style="padding:0.75rem; width:100%; text-align:left;">
-                    🎉 ${data.message || 'सफलतापूर्वक सहेजा गया!'}
-                </div>
-            `;
+            const title = document.getElementById('articleTitle').value.trim() || "परीक्षण लेख";
+            const summary = document.getElementById('editSummaryInput').value.trim();
+            const reconstructed = getReconstructedWikitext();
+
+            // Always copy reconstructed wikitext to clipboard for safety
+            await navigator.clipboard.writeText(reconstructed);
+
+            if (currentMode === "backend") {
+                try {
+                    const resp = await fetch(getApiUrl("/api/save"), {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                            title: title,
+                            wikitext: reconstructed,
+                            summary: summary,
+                            confirmed: true,
+                            dry_run: false
+                        })
+                    });
+                    if (resp.ok) {
+                        const data = await resp.json();
+                        document.getElementById('publishStatus').innerHTML = `
+                            <div class="alert-banner success" style="width:100%;">
+                                🎉 ${data.message || 'विकिपीडिया पर सफलतापूर्वक सहेजा गया!'}
+                            </div>
+                        `;
+                        return;
+                    }
+                } catch (e) {
+                    console.warn("Backend publish failed, falling back to manual edit guide:", e);
+                }
+            }
+
+            // Client-Side mode publication guide
+            document.getElementById('guideModalSummary').innerText = summary;
+            const editUrl = `https://hi.wikipedia.org/w/index.php?title=${encodeURIComponent(title)}&action=edit`;
+            const linkBtn = document.getElementById('wikiEditPageLink');
+            linkBtn.href = editUrl;
+
+            document.getElementById('publishGuideModal').classList.add('active');
         }
 
-        // Helper Tab API Callers
+        function closePublishGuideModal() {
+            document.getElementById('publishGuideModal').classList.remove('active');
+        }
+
+        /**
+         * 8 Companion Helper Implementations
+         */
+
+        // Helper 1: Duplicate Ref Merger
         async function runDuplicateMerger() {
             const wikitext = document.getElementById('wikitextInput').value;
-            const res = await fetch("/api/helpers/duplicate-merger", {
-                method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify({wikitext})
-            }).then(r => r.json());
-            document.getElementById('duplicateMergerResult').innerHTML = `
-                <div class="stat-box" style="text-align:left;">
-                    <strong>डुप्लिकेट मिले:</strong> ${res.duplicates_found}<br/>
-                    ${res.proposed_merges.map(m => `<div><code>${escapeHtml(m.original)}</code> &rarr; <code>${escapeHtml(m.replacement)}</code></div>`).join('')}
-                </div>
-            `;
+            const resContainer = document.getElementById('duplicateMergerResult');
+            resContainer.style.display = "block";
+            resContainer.innerHTML = "⏳ डुप्लिकेट सन्दर्भ खोजे जा रहे हैं...";
+
+            if (currentMode === "backend") {
+                try {
+                    const res = await fetch(getApiUrl("/api/helpers/duplicate-merger"), {
+                        method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ wikitext })
+                    }).then(r => r.json());
+                    resContainer.innerHTML = `
+                        <strong>डुप्लिकेट मिले:</strong> ${res.duplicates_found}<br/>
+                        ${(res.proposed_merges || []).map(m => `<div><code>${escapeHtml(m.original)}</code> &rarr; <code>${escapeHtml(m.replacement)}</code></div>`).join('')}
+                    `;
+                    return;
+                } catch (e) {}
+            }
+
+            // Client-side implementation
+            const refs = ClientEngine.extractReferences(wikitext);
+            const contentMap = new Map();
+            const duplicates = [];
+
+            refs.forEach((ref, idx) => {
+                if (ref.isSelfClosing) return;
+                const cleanContent = ref.innerContent.trim();
+                if (!cleanContent) return;
+
+                if (!contentMap.has(cleanContent)) {
+                    contentMap.set(cleanContent, { firstRef: ref, count: 1, idx });
+                } else {
+                    const entry = contentMap.get(cleanContent);
+                    entry.count++;
+                    const refName = entry.firstRef.name || `ref_${entry.idx + 1}`;
+                    duplicates.push({
+                        original: ref.fullMatch,
+                        replacement: `<ref name="${refName}" />`,
+                        content: cleanContent
+                    });
+                }
+            });
+
+            if (duplicates.length === 0) {
+                resContainer.innerHTML = `<span class="badge badge-success">✓ कोई डुप्लिकेट सन्दर्भ नहीं मिला।</span> सभी सन्दर्भ अद्वितीय हैं।`;
+            } else {
+                resContainer.innerHTML = `
+                    <strong>डुप्लिकेट मिले:</strong> ${duplicates.length}<br/>
+                    <p style="font-size:0.88rem; color:var(--text-muted); margin-bottom:0.5rem;">समान सामग्री वाले सन्दर्भों को नामजद टैग में विलय करने का प्रस्ताव:</p>
+                    ${duplicates.map(d => `<div style="margin-bottom:0.4rem;"><code>${escapeHtml(d.original)}</code> &rarr; <code>${escapeHtml(d.replacement)}</code></div>`).join('')}
+                `;
+            }
         }
 
+        // Helper 2: Conflict Resolver
         async function runConflictResolver() {
             const wikitext = document.getElementById('wikitextInput').value;
-            const res = await fetch("/api/helpers/conflict-resolver", {
-                method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify({wikitext})
-            }).then(r => r.json());
-            document.getElementById('conflictResolverResult').innerHTML = `
-                <div class="stat-box" style="text-align:left;">
-                    <strong>नाम विरोध मिले:</strong> ${res.conflicts_count}<br/>
-                    ${res.conflicts.map(c => `<div><strong>${escapeHtml(c.ref_name)}:</strong> ${escapeHtml(c.message)}</div>`).join('')}
-                </div>
-            `;
+            const resContainer = document.getElementById('conflictResolverResult');
+            resContainer.style.display = "block";
+            resContainer.innerHTML = "⏳ नाम विरोध की जाँच हो रही है...";
+
+            if (currentMode === "backend") {
+                try {
+                    const res = await fetch(getApiUrl("/api/helpers/conflict-resolver"), {
+                        method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ wikitext })
+                    }).then(r => r.json());
+                    resContainer.innerHTML = `
+                        <strong>नाम विरोध मिले:</strong> ${res.conflicts_count}<br/>
+                        ${(res.conflicts || []).map(c => `<div><strong>${escapeHtml(c.ref_name)}:</strong> ${escapeHtml(c.message)}</div>`).join('')}
+                    `;
+                    return;
+                } catch (e) {}
+            }
+
+            // Client-side implementation
+            const refs = ClientEngine.extractReferences(wikitext);
+            const nameMap = new Map();
+            const conflicts = [];
+
+            refs.forEach(ref => {
+                if (!ref.name || ref.isSelfClosing) return;
+                const clean = ref.innerContent.trim();
+                if (!clean) return;
+
+                if (!nameMap.has(ref.name)) {
+                    nameMap.set(ref.name, clean);
+                } else {
+                    const prev = nameMap.get(ref.name);
+                    if (prev !== clean) {
+                        conflicts.push({
+                            ref_name: ref.name,
+                            message: `सन्दर्भ नाम "${ref.name}" के तहत दो भिन्न सामग्रियाँ परिभाषित हैं! इससे डेटा ओवरराइट होने का ख़तरा है।`
+                        });
+                    }
+                }
+            });
+
+            if (conflicts.length === 0) {
+                resContainer.innerHTML = `<span class="badge badge-success">✓ कोई नाम विरोध नहीं मिला।</span> सभी नामजद सन्दर्भ सुसंगत हैं।`;
+            } else {
+                resContainer.innerHTML = `
+                    <strong style="color:var(--danger);">नाम विरोध मिले:</strong> ${conflicts.length}<br/>
+                    ${conflicts.map(c => `<div style="margin-top:0.3rem;"><span class="badge badge-danger">विरोध</span> <strong>${escapeHtml(c.ref_name)}:</strong> ${escapeHtml(c.message)}</div>`).join('')}
+                `;
+            }
         }
 
+        // Helper 3: Dead Links & Wayback
         async function runDeadLinks() {
             const wikitext = document.getElementById('wikitextInput').value;
-            const res = await fetch("/api/helpers/dead-links", {
-                method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify({wikitext})
-            }).then(r => r.json());
-            document.getElementById('deadLinksResult').innerHTML = `
-                <div class="stat-box" style="text-align:left;">
-                    <strong>मृत कड़ियाँ:</strong> ${res.dead_links_count}<br/>
-                    ${res.results.map(r => `<div>${escapeHtml(r.url)} &rarr; <a href="${r.archive_url}" target="_blank">Wayback Snapshot</a></div>`).join('')}
-                </div>
-            `;
+            const resContainer = document.getElementById('deadLinksResult');
+            resContainer.style.display = "block";
+            resContainer.innerHTML = "⏳ Wayback Machine API द्वारा मृत कड़ियों की जाँच हो रही है...";
+
+            if (currentMode === "backend") {
+                try {
+                    const res = await fetch(getApiUrl("/api/helpers/dead-links"), {
+                        method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ wikitext })
+                    }).then(r => r.json());
+                    resContainer.innerHTML = `
+                        <strong>मृत कड़ियाँ:</strong> ${res.dead_links_count}<br/>
+                        ${(res.results || []).map(r => `<div>${escapeHtml(r.url)} &rarr; <a href="${r.archive_url}" target="_blank">Wayback Snapshot</a></div>`).join('')}
+                    `;
+                    return;
+                } catch (e) {}
+            }
+
+            // Client-side implementation: extract external URLs and check Wayback Availability API
+            const urlRegex = /https?:\/\/[^\s<>"'\]]+/gi;
+            const urls = Array.from(new Set(wikitext.match(urlRegex) || [])).slice(0, 5); // limit to first 5 for speed
+            const snapshots = [];
+
+            for (const u of urls) {
+                try {
+                    const wbUrl = `https://archive.org/wayback/available?url=${encodeURIComponent(u)}`;
+                    const wbRes = await fetch(wbUrl);
+                    if (wbRes.ok) {
+                        const wbData = await wbRes.json();
+                        if (wbData && wbData.archived_snapshots && wbData.archived_snapshots.closest) {
+                            const snap = wbData.archived_snapshots.closest;
+                            snapshots.push({
+                                url: u,
+                                archive_url: snap.url,
+                                archive_date: snap.timestamp ? snap.timestamp.slice(0, 8) : ""
+                            });
+                        }
+                    }
+                } catch (e) {}
+            }
+
+            if (snapshots.length === 0) {
+                resContainer.innerHTML = `जाँच किए गए URLs के लिए कोई मृत कड़ी या आर्काइव दर्ज नहीं मिला।`;
+            } else {
+                resContainer.innerHTML = `
+                    <strong>उपलब्ध Wayback स्नैपशॉट:</strong> ${snapshots.length}<br/>
+                    ${snapshots.map(s => `<div style="margin-top:0.4rem;">🔗 <code>${escapeHtml(s.url)}</code><br/>&rarr; <a href="${s.archive_url}" target="_blank" style="color:var(--primary); font-weight:600;">Wayback Snapshot देखें</a> (दिनांक: ${escapeHtml(s.archive_date || 'N/A')})</div>`).join('')}
+                `;
+            }
         }
 
+        // Helper 4: Error Scanner
         async function runErrorScanner() {
             const wikitext = document.getElementById('wikitextInput').value;
-            const res = await fetch("/api/helpers/error-scanner", {
-                method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify({wikitext})
-            }).then(r => r.json());
-            document.getElementById('errorScannerResult').innerHTML = `
-                <div class="stat-box" style="text-align:left;">
-                    <strong>त्रुटियाँ:</strong> ${res.error_count}<br/>
-                    ${res.errors.map(e => `<div><span class="badge badge-danger">${e.type}</span> ${escapeHtml(e.message)}</div>`).join('')}
-                </div>
-            `;
+            const resContainer = document.getElementById('errorScannerResult');
+            resContainer.style.display = "block";
+            resContainer.innerHTML = "⏳ सिंटैक्स त्रुटियाँ जाँची जा रही हैं...";
+
+            if (currentMode === "backend") {
+                try {
+                    const res = await fetch(getApiUrl("/api/helpers/error-scanner"), {
+                        method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ wikitext })
+                    }).then(r => r.json());
+                    resContainer.innerHTML = `
+                        <strong>त्रुटियाँ मिलीं:</strong> ${res.error_count}<br/>
+                        ${(res.errors || []).map(e => `<div><span class="badge badge-danger">${escapeHtml(e.type)}</span> ${escapeHtml(e.message)}</div>`).join('')}
+                    `;
+                    return;
+                } catch (e) {}
+            }
+
+            // Client-side implementation
+            const errors = [];
+            const refs = ClientEngine.extractReferences(wikitext);
+
+            // Empty refs
+            refs.forEach(ref => {
+                if (!ref.isSelfClosing && !ref.innerContent.trim()) {
+                    errors.push({ type: "रिक्त संदर्भ", message: "खाली <ref></ref> टैग मौजूद है।" });
+                }
+            });
+
+            // Missing reflist
+            const hasRefList = /\{\{\s*(?:सन्दर्भ\s*सूची|reflist|संदर्भ\s*सूची|references)\b/i.test(wikitext) || /<references\s*\/?>/i.test(wikitext);
+            if (refs.length > 0 && !hasRefList) {
+                errors.push({ type: "अनुपस्थित सन्दर्भ सूची", message: "लेख में सन्दर्भ मौजूद हैं किन्तु {{सन्दर्भ सूची}} कंटेनर नहीं मिला।" });
+            }
+
+            // Unclosed brackets
+            const openBrackets = (wikitext.match(/\{\{/g) || []).length;
+            const closeBrackets = (wikitext.match(/\}\}/g) || []).length;
+            if (openBrackets !== closeBrackets) {
+                errors.push({ type: "असंतुलित कोष्ठक", message: `साँचा कोष्ठक असंतुलित हैं: {{ (${openBrackets}) बनाम }} (${closeBrackets})` });
+            }
+
+            if (errors.length === 0) {
+                resContainer.innerHTML = `<span class="badge badge-success">✓ कोई सिंटैक्स त्रुटि नहीं मिली।</span> सभी टैग व कोष्ठक संतुलित हैं।`;
+            } else {
+                resContainer.innerHTML = `
+                    <strong style="color:var(--danger);">त्रुटियाँ मिलीं:</strong> ${errors.length}<br/>
+                    ${errors.map(e => `<div style="margin-top:0.4rem;"><span class="badge badge-danger">${escapeHtml(e.type)}</span> ${escapeHtml(e.message)}</div>`).join('')}
+                `;
+            }
         }
 
+        // Helper 5: Validator (ISBN/ISSN/DOI & Dates)
         async function runValidator() {
             const wikitext = document.getElementById('wikitextInput').value;
-            const res = await fetch("/api/helpers/validator", {
-                method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify({wikitext})
-            }).then(r => r.json());
-            document.getElementById('validatorResult').innerHTML = `
-                <div class="stat-box" style="text-align:left;">
-                    <pre>${JSON.stringify(res.results, null, 2)}</pre>
-                </div>
-            `;
+            const resContainer = document.getElementById('validatorResult');
+            resContainer.style.display = "block";
+            resContainer.innerHTML = "⏳ पहचानकर्ता व तिथियाँ जाँची जा रही हैं...";
+
+            if (currentMode === "backend") {
+                try {
+                    const res = await fetch(getApiUrl("/api/helpers/validator"), {
+                        method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ wikitext })
+                    }).then(r => r.json());
+                    renderValidatorOutput(res.results || res);
+                    return;
+                } catch (e) {}
+            }
+
+            // Client-side implementation
+            const results = {
+                isbn: [],
+                issn: [],
+                doi: [],
+                devanagari_dates: []
+            };
+
+            // ISBN Checksum validation
+            const isbnMatches = wikitext.match(/isbn\s*=\s*([0-9Xx\-]+)/gi) || [];
+            isbnMatches.forEach(m => {
+                const val = m.replace(/isbn\s*=\s*/i, "").replace(/[\-\s]/g, "");
+                let isValid = false;
+                if (val.length === 10) {
+                    let sum = 0;
+                    for (let i = 0; i < 9; i++) sum += parseInt(val[i], 10) * (10 - i);
+                    const last = val[9].toUpperCase() === 'X' ? 10 : parseInt(val[9], 10);
+                    sum += last;
+                    isValid = (sum % 11 === 0);
+                } else if (val.length === 13) {
+                    let sum = 0;
+                    for (let i = 0; i < 12; i++) sum += parseInt(val[i], 10) * (i % 2 === 0 ? 1 : 3);
+                    const check = (10 - (sum % 10)) % 10;
+                    isValid = (check === parseInt(val[12], 10));
+                }
+                results.isbn.push({ raw: val, valid: isValid });
+            });
+
+            // DOI syntax validation
+            const doiMatches = wikitext.match(/doi\s*=\s*([^\s\|\}]+)/gi) || [];
+            doiMatches.forEach(m => {
+                const val = m.replace(/doi\s*=\s*/i, "").trim();
+                const isValid = /^10\.\d{4,9}\/[-._;()/:A-Za-z0-9]+$/i.test(val);
+                results.doi.push({ raw: val, valid: isValid });
+            });
+
+            // Devanagari numerals date detection
+            const devDateMatches = wikitext.match(/[०-९]{1,4}[-\/\s]+[०-९\w\u0900-\u097F]+[-\/\s]+[०-९]{1,4}/g) || [];
+            devDateMatches.forEach(d => {
+                const normalized = d.replace(/[०-९]/g, d => "०१२३४५६७८९".indexOf(d));
+                results.devanagari_dates.push({ raw: d, normalized });
+            });
+
+            renderValidatorOutput(results);
         }
 
+        function renderValidatorOutput(res) {
+            const container = document.getElementById('validatorResult');
+            let html = `<strong>सत्यापन रिपोर्ट:</strong><br/>`;
+
+            if (res.isbn && res.isbn.length > 0) {
+                html += `<div style="margin-top:0.5rem;"><strong>ISBN:</strong></div>`;
+                res.isbn.forEach(i => {
+                    const badge = i.valid ? `<span class="badge badge-success">वैध (Valid)</span>` : `<span class="badge badge-danger">अमान्य (Invalid Checksum)</span>`;
+                    html += `<div><code>${escapeHtml(i.raw)}</code>: ${badge}</div>`;
+                });
+            } else {
+                html += `<div>• कोई ISBN नहीं मिला।</div>`;
+            }
+
+            if (res.doi && res.doi.length > 0) {
+                html += `<div style="margin-top:0.5rem;"><strong>DOI:</strong></div>`;
+                res.doi.forEach(d => {
+                    const badge = d.valid ? `<span class="badge badge-success">वैध (Valid)</span>` : `<span class="badge badge-danger">अमान्य सिंटैक्स</span>`;
+                    html += `<div><code>${escapeHtml(d.raw)}</code>: ${badge}</div>`;
+                });
+            }
+
+            if (res.devanagari_dates && res.devanagari_dates.length > 0) {
+                html += `<div style="margin-top:0.5rem;"><strong>देवनागरी अंक मानकीकरण:</strong></div>`;
+                res.devanagari_dates.forEach(dt => {
+                    html += `<div><code>${escapeHtml(dt.raw)}</code> &rarr; <code>${escapeHtml(dt.normalized)}</code></div>`;
+                });
+            }
+
+            container.innerHTML = html;
+        }
+
+        // Helper 6: Group Checker
         async function runGroupChecker() {
             const wikitext = document.getElementById('wikitextInput').value;
-            const res = await fetch("/api/helpers/group-checker", {
-                method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify({wikitext})
-            }).then(r => r.json());
-            document.getElementById('groupCheckerResult').innerHTML = `
-                <div class="stat-box" style="text-align:left;">
-                    <strong>संगत है:</strong> ${res.is_consistent ? 'हाँ (Consistent)' : 'नहीं (Inconsistent)'}<br/>
-                    <strong>अनाथ ग्रुप:</strong> ${res.orphaned_groups.join(', ') || 'कोई नहीं'}
-                </div>
-            `;
+            const resContainer = document.getElementById('groupCheckerResult');
+            resContainer.style.display = "block";
+            resContainer.innerHTML = "⏳ ग्रुप संगति जाँची जा रही है...";
+
+            if (currentMode === "backend") {
+                try {
+                    const res = await fetch(getApiUrl("/api/helpers/group-checker"), {
+                        method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ wikitext })
+                    }).then(r => r.json());
+                    resContainer.innerHTML = `
+                        <strong>ग्रुप संगति:</strong> ${res.is_consistent ? '<span class="badge badge-success">संगत (Consistent)</span>' : '<span class="badge badge-danger">असंगत (Inconsistent)</span>'}<br/>
+                        <strong>अनाथ ग्रुप:</strong> ${(res.orphaned_groups || []).join(', ') || 'कोई नहीं'}
+                    `;
+                    return;
+                } catch (e) {}
+            }
+
+            // Client-side implementation
+            const refs = ClientEngine.extractReferences(wikitext);
+            const refGroups = new Set();
+            refs.forEach(r => { if (r.group) refGroups.add(r.group); });
+
+            const containerGroupMatches = wikitext.match(/group\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s\|\}]+))/gi) || [];
+            const containerGroups = new Set();
+            containerGroupMatches.forEach(m => {
+                const g = m.replace(/group\s*=\s*["']?/i, "").replace(/["']?$/, "").trim();
+                containerGroups.add(g);
+            });
+
+            const orphaned = [];
+            refGroups.forEach(g => {
+                if (!containerGroups.has(g)) orphaned.push(g);
+            });
+
+            if (orphaned.length === 0) {
+                resContainer.innerHTML = `<span class="badge badge-success">✓ सभी सन्दर्भ ग्रुप संगत हैं।</span> कोई अनाथ ग्रुप नहीं मिला।`;
+            } else {
+                resContainer.innerHTML = `
+                    <strong style="color:var(--danger);">असंगत ग्रुप मिले:</strong><br/>
+                    निम्नलिखित ग्रुपों के लिए पृष्ठ पर कोई {{सन्दर्भ सूची|group=...}} नहीं मिला:<br/>
+                    ${orphaned.map(g => `<span class="badge badge-danger">ग्रुप: ${escapeHtml(g)}</span>`).join(' ')}
+                `;
+            }
         }
 
+        // Helper 7: Domain Advisory
         async function runDomainAdvisory() {
             const wikitext = document.getElementById('wikitextInput').value;
-            const res = await fetch("/api/helpers/domain-advisory", {
-                method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify({wikitext})
-            }).then(r => r.json());
-            document.getElementById('domainAdvisoryResult').innerHTML = `
-                <div class="stat-box" style="text-align:left;">
-                    <strong>ध्वजांकित डोमेन:</strong> ${res.flagged_domains_count}<br/>
-                    ${res.flagged.map(f => `<div><span class="badge badge-warning">${f.domain}</span> ${escapeHtml(f.warning)}</div>`).join('')}
-                </div>
-            `;
+            const resContainer = document.getElementById('domainAdvisoryResult');
+            resContainer.style.display = "block";
+            resContainer.innerHTML = "⏳ अविश्वसनीय स्रोतों की जाँच हो रही है...";
+
+            if (currentMode === "backend") {
+                try {
+                    const res = await fetch(getApiUrl("/api/helpers/domain-advisory"), {
+                        method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ wikitext })
+                    }).then(r => r.json());
+                    resContainer.innerHTML = `
+                        <strong>ध्वजांकित डोमेन मिले:</strong> ${res.flagged_domains_count}<br/>
+                        ${(res.flagged || []).map(f => `<div><span class="badge badge-warning">${escapeHtml(f.domain)}</span> ${escapeHtml(f.warning)}</div>`).join('')}
+                    `;
+                    return;
+                } catch (e) {}
+            }
+
+            // Client-side implementation
+            const urlRegex = /https?:\/\/([^\s<>"'\/\]]+)/gi;
+            const foundDomains = new Set();
+            let match;
+            while ((match = urlRegex.exec(wikitext)) !== null) {
+                foundDomains.add(match[1].toLowerCase());
+            }
+
+            const flagged = [];
+            foundDomains.forEach(domain => {
+                for (const item of UNRELIABLE_DOMAINS) {
+                    if (item.pattern.test(domain)) {
+                        flagged.push({ domain: item.name + ` (${domain})`, warning: item.reason });
+                        break;
+                    }
+                }
+            });
+
+            if (flagged.length === 0) {
+                resContainer.innerHTML = `<span class="badge badge-success">✓ कोई अविश्वसनीय डोमेन नहीं मिला।</span> सभी स्रोत मानक दिशानिर्देशों के अनुरूप हैं।`;
+            } else {
+                resContainer.innerHTML = `
+                    <strong>ध्वजांकित अविश्वसनीय स्रोत:</strong> ${flagged.length}<br/>
+                    <p style="font-size:0.88rem; color:var(--text-muted); margin-bottom:0.5rem;">हिन्दी विकिपीडिया नीति WP:RSP के अनुसार इन स्रोतों को बदलने की सलाह दी जाती है:</p>
+                    ${flagged.map(f => `<div style="margin-bottom:0.4rem;"><span class="badge badge-warning">सलाह</span> <strong>${escapeHtml(f.domain)}:</strong> ${escapeHtml(f.warning)}</div>`).join('')}
+                `;
+            }
+        }
+
+        // Helper 8: Local Draft & Diff Export
+        function saveLocalDraft() {
+            const text = document.getElementById('wikitextInput').value;
+            const title = document.getElementById('articleTitle').value;
+            if (!text) {
+                alert("सहेजने के लिए कोई विकिटेक्स्ट नहीं है!");
+                return;
+            }
+            localStorage.setItem("wiki_ref_fixer_draft_text", text);
+            localStorage.setItem("wiki_ref_fixer_draft_title", title);
+            localStorage.setItem("wiki_ref_fixer_draft_time", new Date().toLocaleString("hi-IN"));
+
+            const res = document.getElementById('draftStatusResult');
+            res.style.display = "block";
+            res.innerHTML = `✓ ड्राफ्ट सुरक्षित किया गया (${new Date().toLocaleTimeString("hi-IN")})`;
+            alert("✓ आपका ड्राफ्ट ब्राउज़र के लोकल स्टोरेज में सुरक्षित कर लिया गया!");
+        }
+
+        function restoreLocalDraft() {
+            const text = localStorage.getItem("wiki_ref_fixer_draft_text");
+            const title = localStorage.getItem("wiki_ref_fixer_draft_title");
+            const time = localStorage.getItem("wiki_ref_fixer_draft_time");
+            if (!text) {
+                alert("लोकल स्टोरेज में कोई सहेजा हुआ ड्राफ्ट नहीं मिला!");
+                return;
+            }
+            document.getElementById('wikitextInput').value = text;
+            if (title) document.getElementById('articleTitle').value = title;
+
+            const res = document.getElementById('draftStatusResult');
+            res.style.display = "block";
+            res.innerHTML = `📂 ड्राफ्ट पुनर्स्थापित किया गया (सहेजा गया था: ${time || 'अज्ञात समय'})`;
+            alert(`✓ ड्राफ्ट सफलतापूर्वक लोड किया गया!`);
         }
 
         function escapeHtml(text) {
             if (!text) return "";
-            return text
+            return String(text)
                 .replace(/&/g, "&amp;")
                 .replace(/</g, "&lt;")
                 .replace(/>/g, "&gt;")

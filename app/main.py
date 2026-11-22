@@ -197,6 +197,8 @@ def create_app() -> FastAPI:
     async def index_page() -> HTMLResponse:
         """Serves the primary Hindi Wikipedia Reference Fixer web interface."""
         template_file = Path(__file__).resolve().parent.parent / "templates" / "index.html"
+        if not template_file.exists():
+            template_file = Path(__file__).resolve().parent.parent / "index.html"
         if template_file.exists():
             return HTMLResponse(content=template_file.read_text(encoding="utf-8"), status_code=200)
         return HTMLResponse(content="<h1>विकिपीडिया सन्दर्भ सुधार उपकरण</h1>", status_code=200)
